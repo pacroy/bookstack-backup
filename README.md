@@ -10,6 +10,7 @@ In order to use this scipt, you need:
 
 - `kubectl` with active context of the cluster
 - An AWS S3 bucket with [SFTP-enabled](https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-for-sftp.html)
+- ssh client with active SSH connection the S3 SFTP server
 
 ### Execute
 
