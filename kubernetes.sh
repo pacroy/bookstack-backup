@@ -29,3 +29,6 @@ put backup/bookstack.sql
 put backup/uploads.tgz
 bye
 EOF
+
+# Clean up
+rm -r backup
