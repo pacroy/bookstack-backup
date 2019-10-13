@@ -19,6 +19,9 @@ BOOKSTACK_POD_NAME=$(kubectl get pod -o name -l app=bookstack --context $KUBE_CO
 kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f ~/uploads.tgz && cd /var/www/bookstack/public/uploads/ && tar -cvzf ~/uploads.tgz * && exit"
 kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME:/root/uploads.tgz ./backup/uploads.tgz
 kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f ~/uploads.tgz"
+kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f ~/storage.tgz && cd /var/www/bookstack/storage/ && tar -cvzf ~/storage.tgz * && exit"
+kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME:/root/storage.tgz ./backup/storage.tgz
+kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f ~/storage.tgz"
 
 # Upload backup files to S3
 CURRENT_DATE=`date +%Y%m%d`
