@@ -24,14 +24,14 @@ kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAM
 kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f ~/storage.tgz"
 
 # Upload backup files to S3
-CURRENT_DATE=`date +%Y%m%d`
-sftp $S3_SFTP_SERVER <<EOF
-mkdir /$S3_BUCKET_NAME/$S3_FOLDER_NAME/$CURRENT_DATE
-cd /$S3_BUCKET_NAME/$S3_FOLDER_NAME/$CURRENT_DATE
-put backup/bookstack.sql
-put backup/uploads.tgz
-bye
-EOF
+#CURRENT_DATE=`date +%Y%m%d`
+#sftp $S3_SFTP_SERVER <<EOF
+#mkdir /$S3_BUCKET_NAME/$S3_FOLDER_NAME/$CURRENT_DATE
+#cd /$S3_BUCKET_NAME/$S3_FOLDER_NAME/$CURRENT_DATE
+#put backup/bookstack.sql
+#put backup/uploads.tgz
+#bye
+#EOF
 
 # Clean up
-rm -r backup
+#rm -r backup
