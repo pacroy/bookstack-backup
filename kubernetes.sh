@@ -4,9 +4,9 @@ set -e
 # Check Parameters
 [ -z "$KUBE_CONTEXT" ] && echo "ERROR: Environment variable KUBE_CONTEXT is not set" && exit 1
 [ -z "$WIKI_NAMSPACE" ] && echo "ERROR: Environment variable WIKI_NAMSPACE is not set" && exit 1
-[ -z "$S3_SFTP_SERVER" ] && echo "ERROR: Environment variable S3_SFTP_SERVER is not set" && exit 1
-[ -z "$S3_BUCKET_NAME" ] && echo "ERROR: Environment variable S3_BUCKET_NAME is not set" && exit 1
-[ -z "$S3_FOLDER_NAME" ] && echo "ERROR: Environment variable S3_FOLDER_NAME is not set" && exit 1
+#[ -z "$S3_SFTP_SERVER" ] && echo "ERROR: Environment variable S3_SFTP_SERVER is not set" && exit 1
+#[ -z "$S3_BUCKET_NAME" ] && echo "ERROR: Environment variable S3_BUCKET_NAME is not set" && exit 1
+#[ -z "$S3_FOLDER_NAME" ] && echo "ERROR: Environment variable S3_FOLDER_NAME is not set" && exit 1
 
 # Backup MySQL
 MYSQL_POD_NAME=$(kubectl get pod -o name -l app=bookstack-mysql --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
