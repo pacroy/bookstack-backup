@@ -8,7 +8,7 @@ set -e
 # Restore MySQL
 MYSQL_POD_NAME=$(kubectl get pod -o name -l app=bookstack-mysql --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
 kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE ./backup/bookstack.sql $MYSQL_POD_NAME:/root/bookstack.sql
-kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "sed -i'.bak' -e 's/wiki.cst.xom.cloud/wiki.uat.cst.xom.cloud/g' /root/bookstack.sql && echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && mysql --password='secret' < /root/bookstack.sql && exit"
+kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && mysql --password='secret' < /root/bookstack.sql && rm /root/bookstack.sql && exit"
 
 # Restore Bookstack
 BOOKSTACK_POD_NAME=$(kubectl get pod -o name -l app=bookstack --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
