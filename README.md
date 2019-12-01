@@ -1,31 +1,63 @@
 # Bookstack Backup Scripts
 
-## kubernates.sh
+Shell scripts to back up and restore Bookstack + MySQL on a Kubernetes cluster.
 
-Shell script for backing up Bookstack application on a Kubernetes cluster and upload to an AWS S3 bucket.
+## Prerequisites
 
-### Prerequisites
+In order to use [backup](backup.sh) and [restore](restore.sh) script, you need:
 
-In order to use this scipt, you need:
+- `kubectl` with active context of the cluster to backup
 
-- `kubectl` with active context of the cluster
-- An AWS S3 bucket with [SFTP-enabled](https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-for-sftp.html)
-- ssh client with active SSH connection the S3 SFTP server
+In order to use upload_to_s3 script, you need:
 
-### Execute
+- An AWS S3 bucket with [SFTP-enabled](https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-for-sftp.html) 
+- ssh client with active SSH connection to the S3 SFTP server
 
-Set the following environment variables:
+## Backup
 
-| Name | Desscription |
-| --- | --- |
-| KUBE_CONTEXT | Kubernetes cluster context | 
-| WIKI_NAMSPACE | Kubernetes namespace running Bookstack application |
-| S3_SFTP_SERVER | AWS SFTP Server Login e.g. user@sftp-server.com |
-| S3_BUCKET_NAME | AWS S3 bucket name |
-| S3_FOLDER_NAME | Top-level folder of the bucket where the backup files will be kept |
+Create and execute shell script file like this:
 
-Execute
+```shell
+#!/bin/bash
+set -e
 
+# Parameters
+KUBE_CONTEXT=<Kubernetes Context Name>
+WIKI_NAMSPACE=<Bookstack Namespace>
+
+# Execute
+source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/backup.sh)
 ```
-source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/kubernetes.sh)
+
+## Restore
+
+Create and execute shell script file like this:
+
+```shell
+#!/bin/bash
+set -e
+
+# Parameters
+KUBE_CONTEXT=<Kubernetes Context Name>
+WIKI_NAMSPACE=<Bookstack Namespace>
+
+# Execute
+source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/restore.sh)
+```
+
+## Upload to S3 via SFTP
+
+Create and execute shell script file like this:
+
+```shell
+#!/bin/bash
+set -e
+
+# Parameters
+S3_SFTP_SERVER=<user@your-sftp-server.com>
+S3_BUCKET_NAME=<S3 Bucket Name>
+S3_FOLDER_NAME=<Folder Name>
+
+# Execute
+source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/upload_to_s3.sh)
 ```
