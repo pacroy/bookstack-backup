@@ -4,6 +4,7 @@ set -e
 # Check Parameters
 [ -z "$KUBE_CONTEXT" ] && echo "ERROR: Environment variable KUBE_CONTEXT is not set" && exit 1
 [ -z "$WIKI_NAMSPACE" ] && echo "ERROR: Environment variable WIKI_NAMSPACE is not set" && exit 1
+read -p "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMSPACE..."
 
 # Backup MySQL
 MYSQL_POD_NAME=$(kubectl get pod -o name -l app=bookstack-mysql --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
