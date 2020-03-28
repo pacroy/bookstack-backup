@@ -11,7 +11,7 @@ MYSQL_POD_NAME=$(kubectl get pod -o name -l app=bookstack-mysql --context $KUBE_
 echo -e "\nCopying MySQL DB Backup into $MYSQL_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE ./backup/bookstack.sql $MYSQL_POD_NAME:/root/bookstack.sql
 if [[ ! -z "$PROD_HOST" ] && [ ! -z "$UAT_HOST" ]]; then 
-    echo -e "\nUpdating hostname in MySQL DB Backup file on $MYSQL_POD_NAME..."
+    echo -e "\nUpdating hostname from '$PROD_HOST' to '$UAT_HOST'..."
     kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "sed -i'.bak' -e 's/$PROD_HOST/$UAT_HOST/g' /root/bookstack.sql"
 fi 
 echo -e "\nRestoring MySQL DB on $MYSQL_POD_NAME..."
