@@ -10,6 +10,7 @@ read -p "Press [Enter] to restore into $KUBE_CONTEXT/$WIKI_NAMSPACE..."
 
 # Restore MySQL
 MYSQL_POD_NAME=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
+[ -z "$MYSQL_POD_NAME" ] && echo "ERROR: Cannot find a $MYSQL_APP_LABEL pod" && exit 1
 echo -e "\nCopying MySQL DB Backup into $MYSQL_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE ./backup/bookstack.sql $MYSQL_POD_NAME:/root/bookstack.sql
 if { [ -z "$PROD_HOST" ] || [ -z "$UAT_HOST" ]; }; then 
@@ -23,9 +24,11 @@ kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $MYSQL_POD_N
 
 # Restore Bookstack
 BOOKSTACK_POD_NAME=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
+[ -z "$BOOKSTACK_APP_LABEL" ] && echo "ERROR: Cannot find a $BOOKSTACK_APP_LABEL pod" && exit 1
 echo -e "\nCopying Bookstack Uploads Backup into $BOOKSTACK_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE ./backup/uploads.tgz $BOOKSTACK_POD_NAME:/root/uploads.tgz
 echo -e "\nExtracting Bookstack Uploads Backup on $BOOKSTACK_POD_NAME..."
 kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "tar -xvzf /root/uploads.tgz -C /var/www/bookstack/public/uploads | wc -l | xargs -i echo {} 'file(s) extracted' && rm /root/uploads.tgz && exit"
-kubectl scale --replicas=0 deploy/bookstack
-kubectl scale --replicas=1 deploy/bookstack
+echo -e "\nRecreating $BOOKSTACK_APP_LABEL pod..."
+kubectl scale --replicas=0 deploy/$BOOKSTACK_APP_LABEL
+kubectl scale --replicas=1 deploy/$BOOKSTACK_APP_LABEL
