@@ -30,5 +30,5 @@ kubectl cp --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE ./backup/uploads.t
 echo -e "\nExtracting Bookstack Uploads Backup on $BOOKSTACK_POD_NAME..."
 kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "tar -xvzf /root/uploads.tgz -C /var/www/bookstack/public/uploads | wc -l | xargs -i echo {} 'file(s) extracted' && rm /root/uploads.tgz && exit"
 echo -e "\nRecreating $BOOKSTACK_APP_LABEL pod..."
-kubectl scale --replicas=0 deploy/$BOOKSTACK_APP_LABEL
-kubectl scale --replicas=1 deploy/$BOOKSTACK_APP_LABEL
+kubectl scale --replicas=0 deploy -l app=$BOOKSTACK_APP_LABEL
+kubectl scale --replicas=1 deploy -l app=$BOOKSTACK_APP_LABEL
