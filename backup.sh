@@ -19,7 +19,7 @@ kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $MYSQL_POD_N
 
 # Backup Bookstack
 BOOKSTACK_POD_NAME=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
-[ -z "$BOOKSTACK_APP_LABEL" ] && echo "ERROR: Cannot find a $BOOKSTACK_APP_LABEL pod" && exit 1
+[ -z "$BOOKSTACK_POD_NAME" ] && echo "ERROR: Cannot find a $BOOKSTACK_APP_LABEL pod" && exit 1
 echo -e "\nArchiving BookStack Uploads from $BOOKSTACK_POD_NAME..."
 kubectl exec -it --context $KUBE_CONTEXT --namespace $WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f ~/uploads.tgz && cd /var/www/bookstack/public/uploads/ && tar -cvzf ~/uploads.tgz * | wc -l | xargs -i echo {} 'file(s) archived' && exit"
 echo -e "\nCopying BookStack Uploads from $BOOKSTACK_POD_NAME..."

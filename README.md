@@ -17,7 +17,7 @@ In order to use upload_to_s3 script, you need:
 
 Create and execute shell script file like this:
 
-```shell
+```sh
 #!/bin/bash
 set -e
 
@@ -35,7 +35,7 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/mast
 
 Create and execute shell script file like this:
 
-```shell
+```sh
 #!/bin/bash
 set -e
 
@@ -49,11 +49,18 @@ export BOOKSTACK_APP_LABEL=<App Label of Bookstack>
 bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/restore.sh)
 ```
 
+You can additionally set the following variables if you copyback from one environment to another.
+
+```sh
+export HOST_FROM=<wiki.yourdomain.com>
+export HOST_TO=<wiki2.yourdomain.com>
+```
+
 ## Upload to S3 via SFTP
 
 Create and execute shell script file like this:
 
-```shell
+```sh
 #!/bin/bash
 set -e
 
