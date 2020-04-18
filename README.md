@@ -6,7 +6,7 @@ Shell scripts to back up and restore Bookstack + MySQL on a Kubernetes cluster.
 
 In order to use [backup](backup.sh) and [restore](restore.sh) script, you need:
 
-- `kubectl` with active context of the cluster to backup
+- `kubectl` with the context of the cluster to backup
 
 In order to use upload_to_s3 script, you need:
 
@@ -22,11 +22,13 @@ Create and execute shell script file like this:
 set -e
 
 # Parameters
-KUBE_CONTEXT=<Kubernetes Context Name>
-WIKI_NAMSPACE=<Bookstack Namespace>
+export KUBE_CONTEXT=<Kubectl Context Name>
+export WIKI_NAMSPACE=<Kubernetes Namespace>
+export MYSQL_APP_LABEL=<App Label of MySQL>
+export BOOKSTACK_APP_LABEL=<App Label of Bookstack>
 
 # Execute
-source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/backup.sh)
+bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/backup.sh)
 ```
 
 ## Restore
@@ -38,11 +40,13 @@ Create and execute shell script file like this:
 set -e
 
 # Parameters
-KUBE_CONTEXT=<Kubernetes Context Name>
-WIKI_NAMSPACE=<Bookstack Namespace>
+export KUBE_CONTEXT=<Kubernetes Context Name>
+export WIKI_NAMSPACE=<Bookstack Namespace>
+export MYSQL_APP_LABEL=<App Label of MySQL>
+export BOOKSTACK_APP_LABEL=<App Label of Bookstack>
 
 # Execute
-source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/restore.sh)
+bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/restore.sh)
 ```
 
 ## Upload to S3 via SFTP
@@ -59,5 +63,5 @@ S3_BUCKET_NAME=<S3 Bucket Name>
 S3_FOLDER_NAME=<Folder Name>
 
 # Execute
-source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/upload_to_s3.sh)
+bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/upload_to_s3.sh)
 ```
