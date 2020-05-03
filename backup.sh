@@ -21,12 +21,12 @@ kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_N
 BOOKSTACK_POD_NAME=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
 [ -z "$BOOKSTACK_POD_NAME" ] && echo "ERROR: Cannot find a $BOOKSTACK_APP_LABEL pod" && exit 1
 echo -e "\nArchiving BookStack Uploads from $BOOKSTACK_POD_NAME..."
-kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/uploads.tgz && cd /var/www/bookstack/bookstack/public/uploads/ && tar -cvzf /var/www/bookstack/uploads.tgz * | wc -l | xargs -i echo {} 'file(s) archived' && exit"
+kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/uploads.tgz && cd /var/www/bookstack/public/uploads/ && tar -cvzf /var/www/bookstack/uploads.tgz * | wc -l | xargs -i echo {} 'file(s) archived' && exit"
 echo -e "\nCopying BookStack Uploads from $BOOKSTACK_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME:/var/www/bookstack/uploads.tgz ./backup/uploads.tgz
 kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/uploads.tgz"
 echo -e "\nArchiving BookStack Storage from $BOOKSTACK_POD_NAME..."
-kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/storage.tgz && cd /var/www/bookstack/bookstack/storage/ && tar -cvzf /var/www/bookstack/storage.tgz * | wc -l | xargs -i echo {} 'file(s) archived' && exit"
+kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/storage.tgz && cd /var/www/bookstack/storage/ && tar -cvzf /var/www/bookstack/storage.tgz * | wc -l | xargs -i echo {} 'file(s) archived' && exit"
 echo -e "\nCopying BookStack Storage from $BOOKSTACK_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME:/var/www/bookstack/storage.tgz ./backup/storage.tgz
 kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/storage.tgz"
