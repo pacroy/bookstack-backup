@@ -32,3 +32,5 @@ kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_P
 echo -e "\nRecreating $BOOKSTACK_APP_LABEL pod..."
 kubectl scale --replicas=0 deploy -l app=$BOOKSTACK_APP_LABEL --namespace=$WIKI_NAMSPACE
 kubectl scale --replicas=1 deploy -l app=$BOOKSTACK_APP_LABEL --namespace=$WIKI_NAMSPACE
+
+echo -e "\nNOTE: If Bookstack pod is error. Check logs and may drop table `api_tokens` to fix."
