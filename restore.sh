@@ -33,4 +33,4 @@ echo -e "\nRecreating $BOOKSTACK_APP_LABEL pod..."
 kubectl scale --replicas=0 deploy -l app=$BOOKSTACK_APP_LABEL --namespace=$WIKI_NAMSPACE
 kubectl scale --replicas=1 deploy -l app=$BOOKSTACK_APP_LABEL --namespace=$WIKI_NAMSPACE
 
-echo -e "\nNOTE: If Bookstack pod is error. Check logs and may drop table 'api_tokens' to fix."
+echo -e "\nNOTE: If Bookstack pod is error. Check logs and if it complains about table 'api_tokens', drop the table."
