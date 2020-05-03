@@ -26,9 +26,9 @@ kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_N
 BOOKSTACK_POD_NAME=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
 [ -z "$BOOKSTACK_POD_NAME" ] && echo "ERROR: Cannot find a $BOOKSTACK_APP_LABEL pod" && exit 1
 echo -e "\nCopying Bookstack Uploads Backup into $BOOKSTACK_POD_NAME..."
-kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/uploads.tgz $BOOKSTACK_POD_NAME:/var/www/uploads.tgz
+kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/uploads.tgz $BOOKSTACK_POD_NAME:/var/www/bookstack/uploads.tgz
 echo -e "\nExtracting Bookstack Uploads Backup on $BOOKSTACK_POD_NAME..."
-kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "tar -xvzf /var/www/uploads.tgz -C /var/www/bookstack/public/uploads | wc -l | xargs -i echo {} 'file(s) extracted' && rm /var/www/uploads.tgz && exit"
+kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "tar -xvzf /var/www/bookstack/uploads.tgz -C /var/www/bookstack/bookstack/public/uploads | wc -l | xargs -i echo {} 'file(s) extracted' && rm /var/www/bookstack/uploads.tgz && exit"
 echo -e "\nRecreating $BOOKSTACK_APP_LABEL pod..."
 kubectl scale --replicas=0 deploy -l app=$BOOKSTACK_APP_LABEL --namespace=$WIKI_NAMSPACE
 kubectl scale --replicas=1 deploy -l app=$BOOKSTACK_APP_LABEL --namespace=$WIKI_NAMSPACE
