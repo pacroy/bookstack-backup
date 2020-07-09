@@ -6,7 +6,9 @@ set -e
 [ -z "$WIKI_NAMSPACE" ] && echo "ERROR: Environment variable WIKI_NAMSPACE is not set" && exit 1
 [ -z "$MYSQL_APP_LABEL" ] && echo "ERROR: Environment variable MYSQL_APP_LABEL is not set" && exit 1
 [ -z "$BOOKSTACK_APP_LABEL" ] && echo "ERROR: Environment variable MYSQL_APP_LABEL is not set" && exit 1
-read -p "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMSPACE..."
+if [ $1 != '-y' ]; then
+    read -p "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMSPACE..."
+fi
 
 # Backup MySQL
 MYSQL_POD_NAME=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
