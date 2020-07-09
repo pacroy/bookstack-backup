@@ -14,7 +14,7 @@ fi
 MYSQL_POD_NAME=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
 [ -z "$MYSQL_POD_NAME" ] && echo "ERROR: Cannot find a $MYSQL_APP_LABEL pod" && exit 1
 echo -e "\nDumping BookStack MySQL DB from $MYSQL_POD_NAME..."
-kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "rm -f ~/bookstack.sql && mysqldump --password='secret' --all-databases > ~/bookstack.sql && exit"
+kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "rm -f ~/bookstack.sql && MYSQL_PWD=secret mysqldump --all-databases -r ~/bookstack.sql && exit"
 echo -e "\nCopying BookStack DB Backup from $MYSQL_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_NAME:/root/bookstack.sql ./backup/bookstack.sql
 kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "rm -f ~/bookstack.sql"
