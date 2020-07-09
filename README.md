@@ -55,20 +55,3 @@ You can additionally set the following variables if you copyback from one enviro
 export HOST_FROM=<wiki.yourdomain.com>
 export HOST_TO=<wiki2.yourdomain.com>
 ```
-
-## Upload to S3 via SFTP
-
-Create and execute shell script file like this:
-
-```sh
-#!/bin/bash
-set -e
-
-# Parameters
-S3_SFTP_SERVER=<user@your-sftp-server.com>
-S3_BUCKET_NAME=<S3 Bucket Name>
-S3_FOLDER_NAME=<Folder Name>
-
-# Execute
-bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/master/upload_to_s3.sh)
-```
