@@ -8,11 +8,6 @@ In order to use [backup](backup.sh) and [restore](restore.sh) script, you need:
 
 - `kubectl` with the context of the cluster to backup
 
-In order to use upload_to_s3 script, you need:
-
-- An AWS S3 bucket with [SFTP-enabled](https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-for-sftp.html) 
-- ssh client with active SSH connection to the S3 SFTP server
-
 ## Backup
 
 Create and execute shell script file like this:
