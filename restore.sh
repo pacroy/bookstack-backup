@@ -11,7 +11,7 @@ if [ -z "$1" ] || [ $1 != '-y' ]; then
 fi
 
 # Restore MySQL
-MYSQL_POD_NAME=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
+MYSQL_POD_NAME="$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')"
 [ -z "$MYSQL_POD_NAME" ] && echo "ERROR: Cannot find a $MYSQL_APP_LABEL pod" && exit 1
 echo -e "\nCopying MySQL DB Backup into $MYSQL_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/bookstack.sql $MYSQL_POD_NAME:/root/bookstack.sql
@@ -25,7 +25,7 @@ echo -e "\nRestoring MySQL DB on $MYSQL_POD_NAME..."
 kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && MYSQL_PWD=secret mysql < /root/bookstack.sql && rm /root/bookstack.sql && exit"
 
 # Restore Bookstack
-BOOKSTACK_POD_NAME=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')
+BOOKSTACK_POD_NAME="$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE | head -1 | grep -o '[^/]*$')"
 [ -z "$BOOKSTACK_POD_NAME" ] && echo "ERROR: Cannot find a $BOOKSTACK_APP_LABEL pod" && exit 1
 echo -e "\nCopying Bookstack Uploads Backup into $BOOKSTACK_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/uploads.tgz $BOOKSTACK_POD_NAME:/var/www/bookstack/uploads.tgz
