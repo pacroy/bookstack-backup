@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+set -o errexit
+set -o pipefail
 
 # Check Parameters
 [ -z "$KUBE_CONTEXT" ] && echo "ERROR: Environment variable KUBE_CONTEXT is not set" && exit 1
