@@ -6,6 +6,16 @@ set -e
 [ -z "$WIKI_NAMSPACE" ] && echo "ERROR: Environment variable WIKI_NAMSPACE is not set" && exit 1
 [ -z "$MYSQL_APP_LABEL" ] && echo "ERROR: Environment variable MYSQL_APP_LABEL is not set" && exit 1
 [ -z "$BOOKSTACK_APP_LABEL" ] && echo "ERROR: Environment variable MYSQL_APP_LABEL is not set" && exit 1
+
+# Print parameters
+echo "KUBE_CONTEXT       : $KUBE_CONTEXT"
+echo "WIKI_NAMSPACE      : $WIKI_NAMSPACE"
+echo "MYSQL_APP_LABEL    : $MYSQL_APP_LABEL"
+echo "BOOKSTACK_APP_LABEL: $BOOKSTACK_APP_LABEL"
+echo "KUBE CONTEXT       : v"
+kubectl config get-contexts
+echo
+
 if [ -z "$1" ] || [ $1 != '-y' ]; then
     read -p "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMSPACE..."
 fi
