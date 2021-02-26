@@ -23,9 +23,8 @@ fi
 
 # Restore MySQL
 MYSQL_PODS=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$MYSQL_PODS" ] && echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" && exit 1
+[ -z "$MYSQL_PODS" ] && echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" >&2 && exit 1
 MYSQL_POD_NAME=$(echo ${MYSQL_PODS} | head -1 | grep -o '[^/]*$')
-[ -z "$MYSQL_POD_NAME" ] && echo "ERROR: Cannot find a $MYSQL_APP_LABEL pod" && exit 1
 echo -e "\nCopying MySQL DB Backup into $MYSQL_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/bookstack.sql $MYSQL_POD_NAME:/root/bookstack.sql
 if { [ -z "$HOST_FROM" ] || [ -z "$HOST_TO" ]; }; then 
@@ -39,9 +38,8 @@ kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_N
 
 # Restore Bookstack
 BOOKSTACK_PODS=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$BOOKSTACK_PODS" ] && echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" && exit 1
+[ -z "$BOOKSTACK_PODS" ] && echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" >&2 && exit 1
 BOOKSTACK_POD_NAME=$(echo ${BOOKSTACK_PODS} | head -1 | grep -o '[^/]*$')
-[ -z "$BOOKSTACK_POD_NAME" ] && echo "ERROR: Cannot find a $BOOKSTACK_APP_LABEL pod" && exit 1
 echo -e "\nCopying Bookstack Uploads Backup into $BOOKSTACK_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/uploads.tgz $BOOKSTACK_POD_NAME:/var/www/bookstack/uploads.tgz
 echo -e "\nExtracting Bookstack Uploads Backup on $BOOKSTACK_POD_NAME..."

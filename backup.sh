@@ -23,7 +23,7 @@ fi
 
 # Backup MySQL
 MYSQL_PODS=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$MYSQL_PODS" ] && echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" && exit 1
+[ -z "$MYSQL_PODS" ] && echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" >&2 && exit 1
 MYSQL_POD_NAME=$(echo ${MYSQL_PODS} | head -1 | grep -o '[^/]*$')
 echo -e "\nDumping BookStack MySQL DB from $MYSQL_POD_NAME..."
 kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_NAME -- bash -c "rm -f ~/bookstack.sql && MYSQL_PWD=secret mysqldump --all-databases -r ~/bookstack.sql && exit"
@@ -33,7 +33,7 @@ kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $MYSQL_POD_NAME 
 
 # Backup Bookstack
 BOOKSTACK_PODS=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$BOOKSTACK_PODS" ] && echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" && exit 1
+[ -z "$BOOKSTACK_PODS" ] && echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" >&2 && exit 1
 BOOKSTACK_POD_NAME=$(echo ${BOOKSTACK_PODS} | head -1 | grep -o '[^/]*$')
 echo -e "\nArchiving BookStack Uploads from $BOOKSTACK_POD_NAME..."
 kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/uploads.tgz && cd /var/www/bookstack/public/uploads/ && tar -cvzf /var/www/bookstack/uploads.tgz * | wc -l | xargs -i echo {} 'file(s) archived' && exit"
