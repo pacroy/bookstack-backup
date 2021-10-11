@@ -37,7 +37,7 @@ BOOKSTACK_PODS=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $
 BOOKSTACK_POD_NAME=$(echo ${BOOKSTACK_PODS} | head -1 | grep -o '[^/]*$')
 
 echo -e "\nCopying BookStack Uploads from $BOOKSTACK_POD_NAME..."
-kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$BOOKSTACK_POD_NAME" -- tar czf - /var/www/bookstack/public/uploads/* > ./backup/uploads.tgz
+kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$BOOKSTACK_POD_NAME" -- tar -czf --directory=/var/www/bookstack/public/uploads - * > ./backup/uploads.tgz
 
 echo -e "\nArchiving BookStack Storage from $BOOKSTACK_POD_NAME..."
 kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack $BOOKSTACK_POD_NAME -- bash -c "rm -f /var/www/bookstack/storage.tgz && cd /var/www/bookstack/storage/ && tar -cvzf /var/www/bookstack/storage.tgz uploads | wc -l | xargs -i echo {} 'file(s) archived' && exit"
