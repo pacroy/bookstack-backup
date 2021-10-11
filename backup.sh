@@ -19,6 +19,9 @@ if [ -z "$1" ] || [ $1 != '-y' ]; then
     read -p "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMSPACE..."
 fi
 
+# Preparation
+mkdir -p ./backup
+
 # Backup MySQL
 MYSQL_PODS="$(kubectl get pod -o name -l app="$MYSQL_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
 if [ -z "$MYSQL_PODS" ]; then echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" >&2 && exit 90; fi
@@ -37,3 +40,6 @@ kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container=
 
 printf "\nCopying BookStack Storage from $BOOKSTACK_POD_NAME...\n"
 kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/storage/ && tar -czf - uploads" > ./backup/storage.tgz
+
+# Cleanup
+rm -rf ./backup
