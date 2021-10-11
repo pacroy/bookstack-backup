@@ -22,9 +22,10 @@ if [ -z "$1" ] || [ $1 != '-y' ]; then
 fi
 
 # Backup MySQL
-MYSQL_PODS=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$MYSQL_PODS" ] && echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" >&2 && exit 1
-MYSQL_POD_NAME=$(echo ${MYSQL_PODS} | head -1 | grep -o '[^/]*$')
+MYSQL_PODS="$(kubectl get pod -o name -l app="$MYSQL_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
+if [ -z "$MYSQL_PODS" ]; then echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" >&2 && exit 90; fi
+MYSQL_POD_NAME="$(echo ${MYSQL_PODS} | head -1 | grep -o '[^/]*$')"
+
 echo -e "\nDumping BookStack MySQL DB from $MYSQL_POD_NAME..."
 kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql $MYSQL_POD_NAME -- bash -c "rm -f ~/bookstack.sql && MYSQL_PWD=secret mysqldump --all-databases -r ~/bookstack.sql && exit"
 echo -e "\nCopying BookStack DB Backup from $MYSQL_POD_NAME..."
@@ -32,7 +33,7 @@ kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql
 kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql $MYSQL_POD_NAME -- bash -c "rm -f ~/bookstack.sql"
 
 # Backup Bookstack
-BOOKSTACK_PODS="$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)"
+BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
 if [ -z "$BOOKSTACK_PODS" ]; then echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" >&2 && exit 90; fi
 BOOKSTACK_POD_NAME="$(echo ${BOOKSTACK_PODS} | head -1 | grep -o '[^/]*$')"
 
