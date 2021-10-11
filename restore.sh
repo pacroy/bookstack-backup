@@ -30,10 +30,10 @@ if { [ -z "$HOST_FROM" ] || [ -z "$HOST_TO" ]; }; then
     printf "\nHOST_FROM and/or HOST_TO not specified. Skip updating hostname.\n"
 else
     printf "\nUpdating hostname from '$HOST_FROM' to '$HOST_TO'...\n"
-    kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql $MYSQL_POD_NAME -- bash -c "sed -i'.bak' -e 's/$HOST_FROM/$HOST_TO/g' /root/bookstack.sql"
+    kubectl exec --context="$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack-mysql" "$MYSQL_POD_NAME" -- bash -c "sed -i'.bak' -e 's/$HOST_FROM/$HOST_TO/g' /root/bookstack.sql"
 fi 
 printf "\nRestoring MySQL DB on $MYSQL_POD_NAME...\n"
-kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql $MYSQL_POD_NAME -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && MYSQL_PWD=secret mysql < /root/bookstack.sql && rm /root/bookstack.sql && exit"
+kubectl exec -it --context="$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack-mysql" "$MYSQL_POD_NAME" -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && MYSQL_PWD=secret mysql < /root/bookstack.sql && rm /root/bookstack.sql && exit"
 
 # Restore Bookstack
 BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
