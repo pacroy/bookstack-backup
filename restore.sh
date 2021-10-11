@@ -42,10 +42,10 @@ if [ -z "$BOOKSTACK_PODS" ]; then echo "ERROR: Cannot find any $BOOKSTACK_APP_LA
 BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "\nCopying Bookstack Uploads into $BOOKSTACK_POD_NAME...\n"
-cat ./backup/uploads.tgz | kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$MYSQL_POD_NAME" -- tar -xzf - -C /var/www/bookstack/public/uploads
+cat ./backup/uploads.tgz | kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/public/uploads
 
 printf "\nCopying Bookstack Storage into $BOOKSTACK_POD_NAME...\n"
-cat ./backup/storage.tgz | kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$MYSQL_POD_NAME" -- tar -xzf - -C /var/www/bookstack/storage
+cat ./backup/storage.tgz | kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/storage
 
 printf "\nRecreating $BOOKSTACK_APP_LABEL pod...\n"
 kubectl scale --replicas=0 deploy -l app="$BOOKSTACK_APP_LABEL" --namespace="$WIKI_NAMSPACE"
