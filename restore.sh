@@ -19,9 +19,10 @@ if [ -z "$1" ] || [ $1 != '-y' ]; then
 fi
 
 # Restore MySQL
-MYSQL_PODS=$(kubectl get pod -o name -l app=$MYSQL_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$MYSQL_PODS" ] && echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" >&2 && exit 1
-MYSQL_POD_NAME=$(echo ${MYSQL_PODS} | head -1 | grep -o '[^/]*$')
+MYSQL_PODS="$(kubectl get pod -o name -l app="$MYSQL_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
+if [ -z "$MYSQL_PODS" ]; then echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod" >&2 && exit 90; fi
+MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
+
 echo -e "\nCopying MySQL DB Backup into $MYSQL_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/bookstack.sql -c bookstack-mysql $MYSQL_POD_NAME:/root/bookstack.sql
 if { [ -z "$HOST_FROM" ] || [ -z "$HOST_TO" ]; }; then 
@@ -34,9 +35,10 @@ echo -e "\nRestoring MySQL DB on $MYSQL_POD_NAME..."
 kubectl exec -it --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql $MYSQL_POD_NAME -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && MYSQL_PWD=secret mysql < /root/bookstack.sql && rm /root/bookstack.sql && exit"
 
 # Restore Bookstack
-BOOKSTACK_PODS=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$BOOKSTACK_PODS" ] && echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" >&2 && exit 1
-BOOKSTACK_POD_NAME=$(echo ${BOOKSTACK_PODS} | head -1 | grep -o '[^/]*$')
+BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
+if [ -z "$BOOKSTACK_PODS" ]; then echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" >&2 && exit 90; fi
+BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
+
 echo -e "\nCopying Bookstack Uploads Backup into $BOOKSTACK_POD_NAME..."
 kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE ./backup/uploads.tgz -c bookstack $BOOKSTACK_POD_NAME:/var/www/bookstack/uploads.tgz
 echo -e "\nExtracting Bookstack Uploads Backup on $BOOKSTACK_POD_NAME..."
