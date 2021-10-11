@@ -32,9 +32,9 @@ kubectl cp --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql
 kubectl exec --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE -c bookstack-mysql $MYSQL_POD_NAME -- bash -c "rm -f ~/bookstack.sql"
 
 # Backup Bookstack
-BOOKSTACK_PODS=$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)
-[ -z "$BOOKSTACK_PODS" ] && echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" >&2 && exit 1
-BOOKSTACK_POD_NAME=$(echo ${BOOKSTACK_PODS} | head -1 | grep -o '[^/]*$')
+BOOKSTACK_PODS="$(kubectl get pod -o name -l app=$BOOKSTACK_APP_LABEL --context $KUBE_CONTEXT --namespace=$WIKI_NAMSPACE)"
+if [ -z "$BOOKSTACK_PODS" ]; then echo "ERROR: Cannot find any $BOOKSTACK_APP_LABEL pod" >&2 && exit 90; fi
+BOOKSTACK_POD_NAME="$(echo ${BOOKSTACK_PODS} | head -1 | grep -o '[^/]*$')"
 
 echo -e "\nCopying BookStack Uploads from $BOOKSTACK_POD_NAME..."
 kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/public/uploads && tar -czf - *" > ./backup/uploads.tgz
