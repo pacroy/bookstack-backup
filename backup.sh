@@ -17,6 +17,7 @@ echo
 
 if [ -z "$1" ] || [ $1 != '-y' ]; then
     read -p "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMSPACE..."
+    echo
 fi
 
 # Backup MySQL
