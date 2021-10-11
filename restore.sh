@@ -13,9 +13,6 @@ echo "KUBE_CONTEXT       : $KUBE_CONTEXT"
 echo "WIKI_NAMSPACE      : $WIKI_NAMSPACE"
 echo "MYSQL_APP_LABEL    : $MYSQL_APP_LABEL"
 echo "BOOKSTACK_APP_LABEL: $BOOKSTACK_APP_LABEL"
-echo "KUBE CONTEXT       : v"
-kubectl config get-contexts
-echo
 
 if [ -z "$1" ] || [ $1 != '-y' ]; then
     read -p "Press [Enter] to restore into $KUBE_CONTEXT/$WIKI_NAMSPACE..."
