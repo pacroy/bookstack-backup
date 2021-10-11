@@ -40,6 +40,3 @@ kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container=
 
 printf "\nCopying BookStack Storage from $BOOKSTACK_POD_NAME...\n"
 kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="bookstack" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/storage/ && tar -czf - uploads" > ./backup/storage.tgz
-
-# Cleanup
-rm -rf ./backup
