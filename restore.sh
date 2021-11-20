@@ -28,7 +28,7 @@ if [ -z "$MYSQL_PODS" ]; then echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod"
 MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying MySQL DB Backup into %s ...\n" "$MYSQL_POD_NAME"
-tar -czf - ./backup/bookstack.sql | kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- tar -xzf - -C /root
+tar -czf - -C ./backup bookstack.sql | kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- tar -xzf - -C /root
 
 if { [ -z "$HOST_FROM" ] || [ -z "$HOST_TO" ]; }; then 
     printf "HOST_FROM and/or HOST_TO not specified. Skip updating hostname.\n"
