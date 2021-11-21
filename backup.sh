@@ -28,7 +28,7 @@ if [ -z "$MYSQL_PODS" ]; then echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod"
 MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying BookStack MySQL DB from %s ...\n" "$MYSQL_POD_NAME"
-kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- MYSQL_PWD=secret mysqldump --all-databases > ./backup/bookstack.sql
+kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "MYSQL_PWD=secret mysqldump --all-databases" > ./backup/bookstack.sql
 
 # Backup Bookstack
 BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
