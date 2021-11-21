@@ -36,7 +36,7 @@ if [ -z "$BOOKSTACK_PODS" ]; then echo "ERROR: Cannot find any $BOOKSTACK_APP_LA
 BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying BookStack Uploads from %s ...\n" "$BOOKSTACK_POD_NAME"
-kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "tar -czf - -C /var/www/bookstack/public/uploads -T *" > ./backup/uploads.tgz
+kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "tar --create --gzip --directory=/var/www/bookstack/public/uploads --file=- *" > ./backup/uploads.tgz
 
 printf "Copying BookStack Storage from %s ...\n" "$BOOKSTACK_POD_NAME"
-kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "tar -czf - -C /var/www/bookstack/storage -T uploads" > ./backup/storage.tgz
+kubectl exec --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "tar --create --gzip --directory=/var/www/bookstack/storage --file=- uploads" > ./backup/storage.tgz
