@@ -5,6 +5,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      is_dry_run:
+        description: 'Dry-run'
+        required: true
+        default: false
+        type: boolean
   schedule:
     - cron: '0 0 * * 0'
 
@@ -103,6 +109,7 @@ jobs:
           EOF 
           } >> $GITHUB_STEP_SUMMARY
       - name: Upload to blob storage
+        if: github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && !inputs.is_dry_run )
         shell: bash
         run: |
           BLOB_PREFIX=$(date +%Y%m%d)
