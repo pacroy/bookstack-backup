@@ -32,7 +32,7 @@ START=$(date +%s.%N)
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "MYSQL_PWD=secret mysqldump --all-databases" > ./backup/bookstack.sql
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds" "$DIFF" 
+printf "%s seconds\n" "$DIFF" 
 
 # Backup Bookstack
 BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE")"
@@ -44,11 +44,11 @@ START=$(date +%s.%N)
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/public/uploads && tar -czf - * | cat" > ./backup/uploads.tgz
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds" "$DIFF"
+printf "%s seconds\n" "$DIFF"
 
 printf "Copying BookStack Storage from %s ... " "$BOOKSTACK_POD_NAME"
 START=$(date +%s.%N)
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMSPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/storage && tar -czf - uploads | cat" > ./backup/storage.tgz
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds" "$DIFF"
+printf "%s seconds\n" "$DIFF"
