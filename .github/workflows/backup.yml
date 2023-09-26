@@ -102,3 +102,30 @@ jobs:
           ```
           EOF 
           } >> $GITHUB_STEP_SUMMARY
+      - name: Upload to blob storage
+        shell: bash
+        run: |
+          BLOB_PREFIX=$(date +%Y%m%d)
+          echo "Uploading Bookstack database backup file ..."
+          az storage blob upload \
+            --container-name "$BLOB_CONTAINER_NAME" \
+            --file 'backup/bookstack.sql' \
+            --name "$BLOB_PREFIX/bookstack.sql" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --auth-mode key --only-show-errors
+          echo
+          echo "Uploading Bookstack upload backup file ..."
+          az storage blob upload \
+            --container-name "$BLOB_CONTAINER_NAME" \
+            --file 'backup/uploads.tgz' \
+            --name "$BLOB_PREFIX/uploads.tgz" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --auth-mode key --only-show-errors
+          echo
+          echo "Uploading Bookstack storage backup file ..."
+          az storage blob upload \
+            --container-name "$BLOB_CONTAINER_NAME" \
+            --file 'backup/storage.tgz' \
+            --name "$BLOB_PREFIX/storage.tgz" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --auth-mode key --only-show-errors
