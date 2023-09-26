@@ -99,15 +99,9 @@ jobs:
         run: |
           mkdir backup
           ./backup.sh -y
-          {
-          cat <<EOF
-          ## Backup Files
-
-          \`\`\`
-          $(ls -Al backup/)
-          \`\`\`
-          EOF 
-          } >> $GITHUB_STEP_SUMMARY
+          echo
+          echo "[Backup Files]"
+          ls -Al backup/
       - name: Upload to blob storage
         if: github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && !inputs.is_dry_run )
         shell: bash
