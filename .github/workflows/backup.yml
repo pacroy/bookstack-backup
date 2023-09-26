@@ -37,25 +37,26 @@ jobs:
       - name: 'Check variables'
         shell: bash
         run: |
-          chk_var_must_set() {
-            if [ -z "$(printf '%s' "{!1}")" ]; then missing_vars = "${missing_vars}$1\n" && passed="false"; fi
+          check_variable() {
+            var_name="${1}"
+            if [ -z "$(printf '%s' "{!var_name}")" ]; then missing_vars = "${missing_vars}${var_name}\n" && passed="false"; fi
           }
 
-          chk_var_must_set "AZURE_TENANT_ID"
-          chk_var_must_set "AZURE_CLIENT_ID"
-          chk_var_must_set "AZURE_SUBSCRIPTION_ID"
+          check_variable "AZURE_TENANT_ID"
+          check_variable "AZURE_CLIENT_ID"
+          check_variable "AZURE_SUBSCRIPTION_ID"
 
-          chk_var_must_set "KUBE_CA_BASE64"
-          chk_var_must_set "KUBE_API_SERVER"
-          chk_var_must_set "KUBE_USER_TOKEN"
-          chk_var_must_set "KUBE_CONTEXT"
+          check_variable "KUBE_CA_BASE64"
+          check_variable "KUBE_API_SERVER"
+          check_variable "KUBE_USER_TOKEN"
+          check_variable "KUBE_CONTEXT"
 
-          chk_var_must_set "WIKI_NAMSPACE"
-          chk_var_must_set "MYSQL_APP_LABEL"
-          chk_var_must_set "BOOKSTACK_APP_LABEL"
+          check_variable "WIKI_NAMSPACE"
+          check_variable "MYSQL_APP_LABEL"
+          check_variable "BOOKSTACK_APP_LABEL"
 
-          chk_var_must_set "BLOB_CONTAINER_NAME"
-          chk_var_must_set "STORAGE_ACCOUNT_NAME"
+          check_variable "BLOB_CONTAINER_NAME"
+          check_variable "STORAGE_ACCOUNT_NAME"
 
           if [ "$passed" = "false" ]; then
             echo "::error::The following mandatory variables are missing:\n$missing_vars"
