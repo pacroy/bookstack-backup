@@ -61,6 +61,7 @@ jobs:
 
           if [ "$passed" = "false" ]; then
             printf "::error::One or more mandatory secret(s) are not configured.\n$missing_vars"
+            exit 90
           else
             echo 'All mandatory variables are present.'
           fi
