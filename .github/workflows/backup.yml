@@ -63,7 +63,7 @@ jobs:
             printf "::error::One or more mandatory secret(s) are not configured.\n$missing_vars"
             exit 90
           else
-            echo 'All mandatory variables are present.'
+            echo 'All mandatory secrets are configured.'
           fi
       - name: Print tool version
         shell: bash
