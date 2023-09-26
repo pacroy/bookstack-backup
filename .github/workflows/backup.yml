@@ -71,3 +71,11 @@ jobs:
           client-id: ${{ env.AZURE_CLIENT_ID }}
           tenant-id: ${{ env.AZURE_TENANT_ID }}
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - name: Print tool version
+        shell: bash
+        run: |
+          echo "[$(command -v az)]"
+          az version
+          echo
+          echo "[$(command -v kubectl)]"
+          kubectl version --client=true
