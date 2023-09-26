@@ -79,3 +79,12 @@ jobs:
           client-id: ${{ env.AZURE_CLIENT_ID }}
           tenant-id: ${{ env.AZURE_TENANT_ID }}
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - name: Login Kubernetes
+        shell: bash
+        run: |
+          echo "$(KUBE_CA_BASE64)" | base64 -d > cert.pem
+          kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
+          kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="$(KUBE_USER_TOKEN)"
+          kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
+          kubectl config use-context "${KUBE_CONTEXT}"
+          kubectl version
