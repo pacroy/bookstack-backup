@@ -39,7 +39,7 @@ jobs:
         run: |
           check_variable() {
             name="${1}"
-            value="$(printf '%s' "{!name}")"
+            value="$(printf '%s' "${!name}")"
             if [ -z "${value}" ]; then missing_vars = "${missing_vars}${name}\n" && passed="false"; fi
           }
 
