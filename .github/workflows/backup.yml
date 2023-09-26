@@ -103,9 +103,9 @@ jobs:
           cat <<EOF
           ## Backup Files
 
-          ```
+          \`\`\`
           $(ls -Al backup/)
-          ```
+          \`\`\`
           EOF 
           } >> $GITHUB_STEP_SUMMARY
       - name: Upload to blob storage
