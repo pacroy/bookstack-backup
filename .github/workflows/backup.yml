@@ -1,0 +1,50 @@
+name: Backup
+concurrency: backup
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  backup:
+    name: Backup
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout self'
+        uses: actions/checkout@v4
+      - name: 'Check variables'
+        shell: bash
+        run: |
+          chk_var_must_set() {
+            if [ -z "$1" ]; then echo "$2" && passed="false"; fi
+          }
+
+          chk_var_must_set "$TENANT_ID" '::error::Variable "TENANT_ID" is not set'
+          chk_var_must_set "$SERVICE_PRINCIPAL_ID" '::error::Variable "SERVICE_PRINCIPAL_ID" is not set'
+          chk_var_must_set "$SERVICE_PRINCIPAL_SECRET" '::error::Variable "SERVICE_PRINCIPAL_SECRET" is not set'
+
+          chk_var_must_set "$KUBE_CA_BASE64" '::error::Variable "KUBE_CA_BASE64" is not set'
+          chk_var_must_set "$KUBE_API_SERVER" '::error::Variable "KUBE_API_SERVER" is not set'
+
+          if [ -n "$KUBE_SERVER_ID" ]; then
+            chk_var_must_set "$KUBE_CLIENT_ID" '::error::Variable "KUBE_CLIENT_ID" is not set'
+          else
+            chk_var_must_set "$KUBE_USER_TOKEN" '::error::Variable "KUBE_USER_TOKEN" is not set'
+          fi
+
+          chk_var_must_set "$KUBE_CONTEXT" '::error::Variable "KUBE_CONTEXT" is not set'
+          chk_var_must_set "$WIKI_NAMSPACE" '::error::Variable "WIKI_NAMSPACE" is not set'
+          chk_var_must_set "$MYSQL_APP_LABEL" '::error::Variable "MYSQL_APP_LABEL" is not set'
+          chk_var_must_set "$BOOKSTACK_APP_LABEL" '::error::Variable "BOOKSTACK_APP_LABEL" is not set'
+          chk_var_must_set "$BLOB_CONTAINER_NAME" '::error::Variable "BLOB_CONTAINER_NAME" is not set'
+          chk_var_must_set "$STORAGE_ACCOUNT_NAME" '::error::Variable "STORAGE_ACCOUNT_NAME" is not set'
+
+          if [ "$passed" = "false" ]; then
+            echo '::error::Missing one or more required variable(s).'
+            echo '##vso[task.complete result=Failed;]DONE'
+          else
+            echo 'All required variables are set.'
+          fi
