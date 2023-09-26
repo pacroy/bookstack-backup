@@ -58,7 +58,7 @@ jobs:
           chk_var_must_set "STORAGE_ACCOUNT_NAME"
 
           if [ "$passed" = "false" ]; then
-            echo ""::error::The following mandatory variables are missing:\n$missing_vars"
+            echo "::error::The following mandatory variables are missing:\n$missing_vars"
             exit 90
           else
             echo 'All mandatory variables are present.'
