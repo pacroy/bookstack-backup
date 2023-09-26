@@ -88,3 +88,17 @@ jobs:
           kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
           kubectl config use-context "${KUBE_CONTEXT}"
           kubectl version
+      - name: Execute backup script
+        shell: bash
+        run: |
+          mkdir backup
+          ./backup.sh -y
+          {
+          cat <<EOF
+          ## Backup Files
+
+          ```
+          $(ls -Al backup/)
+          ```
+          EOF 
+          } >> $GITHUB_STEP_SUMMARY
