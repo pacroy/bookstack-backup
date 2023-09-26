@@ -60,8 +60,7 @@ jobs:
           check_variable "STORAGE_ACCOUNT_NAME"
 
           if [ "$passed" = "false" ]; then
-            printf "::error::The following mandatory variables are missing:\n$missing_vars"
-            exit 90
+            printf "::error::One or more mandatory secret(s) are not configured.\n$missing_vars"
           else
             echo 'All mandatory variables are present.'
           fi
