@@ -40,7 +40,7 @@ jobs:
           check_variable() {
             name="${1}"
             value="$(printf '%s' "${!name}")"
-            if [ -z "${value}" ]; then missing_vars = "${missing_vars}${name}\n" && passed="false"; fi
+            if [ -z "${value}" ]; then missing_vars+="${name}"$'\n' && passed="false"; fi
           }
 
           check_variable "AZURE_TENANT_ID"
@@ -60,7 +60,7 @@ jobs:
           check_variable "STORAGE_ACCOUNT_NAME"
 
           if [ "$passed" = "false" ]; then
-            echo "::error::The following mandatory variables are missing:\n$missing_vars"
+            printf "::error::The following mandatory variables are missing:\n$missing_vars"
             exit 90
           else
             echo 'All mandatory variables are present.'
