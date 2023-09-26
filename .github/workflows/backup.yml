@@ -136,3 +136,15 @@ jobs:
             --name "$BLOB_PREFIX/storage.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          echo "Cleaning up ..."
+          kubectl config delete-context "${KUBE_CONTEXT}" || true
+          kubectl config delete-user "clusterUser_${KUBE_CONTEXT}" || true
+          kubectl config delete-cluster "${KUBE_CONTEXT}" || true
+          rm -f cert.pem || true
+          rm -rf backup || true
+          az logout || true
+          az account clear || true
