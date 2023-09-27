@@ -113,7 +113,7 @@ jobs:
             --file 'backup/bookstack.sql' \
             --name "$BLOB_PREFIX/bookstack.sql" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors
+            --auth-mode key --only-show-errors --output none
           echo
           echo "Uploading Bookstack upload backup file ..."
           az storage blob upload \
@@ -121,7 +121,7 @@ jobs:
             --file 'backup/uploads.tgz' \
             --name "$BLOB_PREFIX/uploads.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors
+            --auth-mode key --only-show-errors --output none
           echo
           echo "Uploading Bookstack storage backup file ..."
           az storage blob upload \
@@ -129,7 +129,7 @@ jobs:
             --file 'backup/storage.tgz' \
             --name "$BLOB_PREFIX/storage.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors
+            --auth-mode key --only-show-errors --output none
       - name: Cleanup
         if: always()
         shell: bash
