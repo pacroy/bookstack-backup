@@ -26,7 +26,7 @@ env:
   KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
   KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
   KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
-  WIKI_NAMSPACE: ${{ secrets.WIKI_NAMSPACE }}
+  WIKI_NAMESPACE: ${{ secrets.WIKI_NAMESPACE }}
   MYSQL_APP_LABEL: ${{ secrets.MYSQL_APP_LABEL }}
   BOOKSTACK_APP_LABEL: ${{ secrets.BOOKSTACK_APP_LABEL }}
   BLOB_CONTAINER_NAME: ${{ secrets.BLOB_CONTAINER_NAME }}
@@ -58,7 +58,7 @@ jobs:
           check_variable "KUBE_USER_TOKEN"
           check_variable "KUBE_CONTEXT"
 
-          check_variable "WIKI_NAMSPACE"
+          check_variable "WIKI_NAMESPACE"
           check_variable "MYSQL_APP_LABEL"
           check_variable "BOOKSTACK_APP_LABEL"
 
@@ -113,7 +113,7 @@ jobs:
             --file 'backup/bookstack.sql' \
             --name "$BLOB_PREFIX/bookstack.sql" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors
+            --auth-mode key --only-show-errors --output none
           echo
           echo "Uploading Bookstack upload backup file ..."
           az storage blob upload \
@@ -121,7 +121,7 @@ jobs:
             --file 'backup/uploads.tgz' \
             --name "$BLOB_PREFIX/uploads.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors
+            --auth-mode key --only-show-errors --output none
           echo
           echo "Uploading Bookstack storage backup file ..."
           az storage blob upload \
@@ -129,7 +129,7 @@ jobs:
             --file 'backup/storage.tgz' \
             --name "$BLOB_PREFIX/storage.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors
+            --auth-mode key --only-show-errors --output none
       - name: Cleanup
         if: always()
         shell: bash
