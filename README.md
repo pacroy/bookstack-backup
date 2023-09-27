@@ -2,9 +2,9 @@
 
 This repository contians bash scripts and GitHub Actions workflows to backup and restore Bookstack nad its MySQL deployed on a [Microk8s cluster](https://github.com/pacroy/microk8s-azure-vm) using [this Helm chart](https://github.com/pacroy/bookstack-helm).
 
-## CLI Usages
+## CLI Usage
 
-### Prerequisites
+### CLI Usage - Prerequisites
 
 1. Make sure [kubectl](https://kubernetes.io/docs/tasks/tools/) is installed, the current context is configured, and it can connect to the cluster successfully.
 2. The following environment variables are set:
@@ -16,7 +16,7 @@ This repository contians bash scripts and GitHub Actions workflows to backup and
     export BOOKSTACK_APP_LABEL="release-bookstack"
     ```
 
-### Backup
+### CLI Usage - Backup
 
 Execute the script.
 
@@ -24,7 +24,7 @@ Execute the script.
 source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main/backup.sh)
 ```
 
-### Restore
+### CLI Usage - Restore
 
 If you copyback from one environment to another, you can additionally set the following variables to update all links.
 
@@ -39,9 +39,9 @@ Execute the script.
 bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main/restore.sh)
 ```
 
-## GitHub Actions Usages
+## GitHub Actions Usage
 
-### Prerequisites
+### GitHub Actions Usage - Prerequisites
 
 1. Create AzureAD application, if you don't already have one.
 2. Grant the application so it can access storage account.
@@ -65,6 +65,6 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 | STORAGE_ACCOUNT_NAME | Azure storage account name for storing backup files |
 | WIKI_NAMESPACE | Kubernetes namespace containing bookstack release |
 
-### Backup
+### GitHub Actions Usage - Backup
 
 The `Backup` workflow is configured to run every Sunday's 0:00. You can manually run it at anytime you want.
