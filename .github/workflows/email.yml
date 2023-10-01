@@ -41,4 +41,4 @@ jobs:
             sgMail
                 .send(msg)
                 .then(() => console.log('Mail sent successfully'))
-                .catch((error) => throw error.toString())
+                .catch(error => { throw error.toString() })
