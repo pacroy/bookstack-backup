@@ -3,7 +3,11 @@ concurrency: backup
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - 'backup.sh'
+      - '.github/workflows/backup.yml'
   workflow_dispatch:
     inputs:
       is_dry_run:

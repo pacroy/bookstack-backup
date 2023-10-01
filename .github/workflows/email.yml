@@ -22,7 +22,6 @@ jobs:
       - name: 'Install SendGrid'
         shell: bash
         run: |
-          npm ci
           npm install sendgrid
       - name: 'Send Email'
         uses: actions/github-script@v6
