@@ -34,9 +34,10 @@ jobs:
             const msg = {
                 to: process.env.SENDGRID_RECIPIENTS.split(";"),
                 from: process.env.SENDGRID_SENDER,
-                subject: 'Hello world',
-                text: 'Hello plain world!',
-                html: '<p>Hello HTML world!</p>',
+                subject: `Workflow ${github.workflow} ${job.status} in ${github.repository}`,
+                text: `Workflow ${github.workflow} ${job.status} in ${github.repository}
+                Link to workflow: ${github.server_url}/${github.repository}/actions/runs/${github.run_id}`,
+                html: `<p>Workflow <a href="${github.server_url}/${github.repository}/actions/runs/${github.run_id}">${github.workflow}></a> ${job.status} in ${github.repository}</p>`,
             }
 
             sgMail
