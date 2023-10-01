@@ -32,7 +32,7 @@ jobs:
             sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
             const msg = {
-                to: process.env.SENDGRID_RECIPIENTS,
+                to: process.env.SENDGRID_RECIPIENTS.split(";"),
                 from: process.env.SENDGRID_SENDER,
                 subject: 'Hello world',
                 text: 'Hello plain world!',
