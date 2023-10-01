@@ -9,6 +9,7 @@ on:
 
 env:
   SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+  SENDGRID_RECIPIENTS: ${{ secrets.SENDGRID_RECIPIENTS }}
 
 jobs:
   email:
