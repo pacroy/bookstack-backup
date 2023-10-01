@@ -1,0 +1,19 @@
+name: Backup
+concurrency: backup
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+
+jobs:
+  email:
+    name: Send Email
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: 'Checkout self'
+        uses: actions/checkout@v4
