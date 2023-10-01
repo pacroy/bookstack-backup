@@ -50,20 +50,23 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 5. Go to your repository settings and create a new environment `production`.
 6. Add the following environment secrets:
 
-| Name | Description |
-|---|---|
-| AZURE_CLIENT_ID | AzureAD application client ID |
-| AZURE_SUBSCRIPTION_ID | Azure subscription ID |
-| AZURE_TENANT_ID | Azure tenant ID|
-| BLOB_CONTAINER_NAME | Blob container name within Azure storage for storing backup files |
-| BOOKSTACK_APP_LABEL | Bookstack pod label e.g. `release-bookstack` |
-| KUBE_API_SERVER | Kubeconfig clusters.cluster.server |
-| KUBE_CA_BASE64 | Kubeconfig clusters.cluster.certificate-authority-data |
-| KUBE_CONTEXT | Kubeconfig contexts.context.name |
-| KUBE_USER_TOKEN | Kubeconfig users.user.token |
-| MYSQL_APP_LABEL | MySQL pod label e.g. `release-mysql` |
-| STORAGE_ACCOUNT_NAME | Azure storage account name for storing backup files |
-| WIKI_NAMESPACE | Kubernetes namespace containing bookstack release |
+| Name                  | Description                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| AZURE_CLIENT_ID       | AzureAD application client ID                                     |
+| AZURE_SUBSCRIPTION_ID | Azure subscription ID                                             |
+| AZURE_TENANT_ID       | Azure tenant ID                                                   |
+| BLOB_CONTAINER_NAME   | Blob container name within Azure storage for storing backup files |
+| BOOKSTACK_APP_LABEL   | Bookstack pod label e.g. `release-bookstack`                      |
+| KUBE_API_SERVER       | Kubeconfig clusters.cluster.server                                |
+| KUBE_CA_BASE64        | Kubeconfig clusters.cluster.certificate-authority-data            |
+| KUBE_CONTEXT          | Kubeconfig contexts.context.name                                  |
+| KUBE_USER_TOKEN       | Kubeconfig users.user.token                                       |
+| MYSQL_APP_LABEL       | MySQL pod label e.g. `release-mysql`                              |
+| SENDGRID_API_KEY      | SendGrid API Key for sending email notification                   |
+| SENDGRID_RECIPIENTS   | Recipient email address(es), separated by semicolon               |
+| SENDGRID_SENDER       | Verified sender email address                                     |
+| STORAGE_ACCOUNT_NAME  | Azure storage account name for storing backup files               |
+| WIKI_NAMESPACE        | Kubernetes namespace containing bookstack release                 |
 
 ### GitHub Actions Usage - Backup
 

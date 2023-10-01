@@ -3,7 +3,11 @@ concurrency: backup
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - 'backup.sh'
+      - '.github/workflows/backup.yml'
   workflow_dispatch:
     inputs:
       is_dry_run:
@@ -31,6 +35,9 @@ env:
   BOOKSTACK_APP_LABEL: ${{ secrets.BOOKSTACK_APP_LABEL }}
   BLOB_CONTAINER_NAME: ${{ secrets.BLOB_CONTAINER_NAME }}
   STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+  SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+  SENDGRID_RECIPIENTS: ${{ secrets.SENDGRID_RECIPIENTS }}
+  SENDGRID_SENDER: ${{ secrets.SENDGRID_SENDER }}
 
 jobs:
   backup:
@@ -64,6 +71,10 @@ jobs:
 
           check_variable "BLOB_CONTAINER_NAME"
           check_variable "STORAGE_ACCOUNT_NAME"
+
+          check_variable "SENDGRID_API_KEY"
+          check_variable "SENDGRID_RECIPIENTS"
+          check_variable "SENDGRID_SENDER"
 
           if [ "$passed" = "false" ]; then
             printf '::error::One or more mandatory secret(s) are not configured.\n%s' "$missing_vars"
@@ -142,3 +153,37 @@ jobs:
           rm -rf backup || true
           az logout || true
           az account clear || true
+      - name: 'Install email library'
+        shell: bash
+        run: |
+          npm install @sendgrid/mail
+      - name: 'Notify via Email'
+        uses: actions/github-script@v6
+        env:
+          JOB_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const sgMail = require('@sendgrid/mail')
+            const {
+              SENDGRID_API_KEY,
+              GITHUB_WORKFLOW,
+              GITHUB_REPOSITORY,
+              GITHUB_SERVER_URL,
+              GITHUB_RUN_ID,
+              JOB_STATUS
+            } = process.env
+            sgMail.setApiKey(SENDGRID_API_KEY)
+
+            const msg = {
+                to: process.env.SENDGRID_RECIPIENTS.split(";"),
+                from: process.env.SENDGRID_SENDER,
+                subject: `Workflow ${GITHUB_WORKFLOW} ${JOB_STATUS} in ${GITHUB_REPOSITORY}`,
+                text: `Workflow ${GITHUB_WORKFLOW} ${JOB_STATUS} in ${GITHUB_REPOSITORY}
+            Link to workflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`,
+                html: `<p>Workflow <a href="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}">${GITHUB_WORKFLOW}</a> ${JOB_STATUS} in ${GITHUB_REPOSITORY}</p>`,
+            }
+
+            sgMail
+                .send(msg)
+                .then(() => console.log('Mail sent successfully'))
+                .catch(error => { throw error.toString() })
