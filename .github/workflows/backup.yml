@@ -35,6 +35,9 @@ env:
   BOOKSTACK_APP_LABEL: ${{ secrets.BOOKSTACK_APP_LABEL }}
   BLOB_CONTAINER_NAME: ${{ secrets.BLOB_CONTAINER_NAME }}
   STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+  SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+  SENDGRID_RECIPIENTS: ${{ secrets.SENDGRID_RECIPIENTS }}
+  SENDGRID_SENDER: ${{ secrets.SENDGRID_SENDER }}
 
 jobs:
   backup:
@@ -68,6 +71,10 @@ jobs:
 
           check_variable "BLOB_CONTAINER_NAME"
           check_variable "STORAGE_ACCOUNT_NAME"
+
+          check_variable "SENDGRID_API_KEY"
+          check_variable "SENDGRID_RECIPIENTS"
+          check_variable "SENDGRID_SENDER"
 
           if [ "$passed" = "false" ]; then
             printf '::error::One or more mandatory secret(s) are not configured.\n%s' "$missing_vars"
@@ -153,23 +160,27 @@ jobs:
       - name: 'Notify via Email'
         uses: actions/github-script@v6
         env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          JOB_CONTEXT: ${{ toJson(job) }}
+          JOB_STATUS: ${{ job.status }}
         with:
           script: |
             const sgMail = require('@sendgrid/mail')
-            sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-
-            const githubContext = JSON.parse(process.env.GITHUB_CONTEXT)
-            const jobContext = JSON.parse(process.env.JOB_CONTEXT)
+            const {
+              SENDGRID_API_KEY,
+              GITHUB_WORKFLOW,
+              GITHUB_REPOSITORY,
+              GITHUB_SERVER_URL,
+              GITHUB_RUN_ID,
+              JOB_STATUS
+            } = process.env
+            sgMail.setApiKey(SENDGRID_API_KEY)
 
             const msg = {
                 to: process.env.SENDGRID_RECIPIENTS.split(";"),
                 from: process.env.SENDGRID_SENDER,
-                subject: `Workflow ${githubContext.workflow} ${jobContext.status} in ${githubContext.repository}`,
-                text: `Workflow ${githubContext.workflow} ${jobContext.status} in ${githubContext.repository}
-                Link to workflow: ${githubContext.server_url}/${githubContext.repository}/actions/runs/${githubContext.run_id}`,
-                html: `<p>Workflow <a href="${githubContext.server_url}/${githubContext.repository}/actions/runs/${githubContext.run_id}">${githubContext.workflow}</a> ${jobContext.status} in ${githubContext.repository}</p>`,
+                subject: `Workflow ${GITHUB_WORKFLOW} ${JOB_STATUS} in ${GITHUB_REPOSITORY}`,
+                text: `Workflow ${GITHUB_WORKFLOW} ${JOB_STATUS} in ${GITHUB_REPOSITORY}
+            Link to workflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`,
+                html: `<p>Workflow <a href="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}">${GITHUB_WORKFLOW}</a> ${JOB_STATUS} in ${GITHUB_REPOSITORY}</p>`,
             }
 
             sgMail
