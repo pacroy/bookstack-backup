@@ -43,7 +43,7 @@ jobs:
                 subject: `Workflow ${githubContext.workflow} ${jobContext.status} in ${githubContext.repository}`,
                 text: `Workflow ${githubContext.workflow} ${jobContext.status} in ${githubContext.repository}
                 Link to workflow: ${githubContext.server_url}/${githubContext.repository}/actions/runs/${githubContext.run_id}`,
-                html: `<p>Workflow <a href="${githubContext.server_url}/${githubContext.repository}/actions/runs/${githubContext.run_id}">${githubContext.workflow}></a> ${jobContext.status} in ${githubContext.repository}</p>`,
+                html: `<p>Workflow <a href="${githubContext.server_url}/${githubContext.repository}/actions/runs/${githubContext.run_id}">${githubContext.workflow}</a> ${jobContext.status} in ${githubContext.repository}</p>`,
             }
 
             sgMail
