@@ -62,6 +62,9 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 | KUBE_CONTEXT | Kubeconfig contexts.context.name |
 | KUBE_USER_TOKEN | Kubeconfig users.user.token |
 | MYSQL_APP_LABEL | MySQL pod label e.g. `release-mysql` |
+| SENDGRID_API_KEY | SendGrid API Key for sending email notification |
+| SENDGRID_RECIPIENTS | Recipient email address(es), separated by semicolon |
+| SENDGRID_SENDER | Verified sender email address |
 | STORAGE_ACCOUNT_NAME | Azure storage account name for storing backup files |
 | WIKI_NAMESPACE | Kubernetes namespace containing bookstack release |
 
