@@ -10,6 +10,7 @@ on:
 env:
   SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
   SENDGRID_RECIPIENTS: ${{ secrets.SENDGRID_RECIPIENTS }}
+  SENDGRID_SENDER: ${{ secrets.SENDGRID_SENDER }}
 
 jobs:
   email:
@@ -32,7 +33,7 @@ jobs:
 
             const msg = {
                 to: process.env.SENDGRID_RECIPIENTS,
-                from: '41898282+github-actions[bot]@users.noreply.github.com',
+                from: process.env.SENDGRID_SENDER,
                 subject: 'Hello world',
                 text: 'Hello plain world!',
                 html: '<p>Hello HTML world!</p>',
