@@ -26,18 +26,24 @@ jobs:
           npm install @sendgrid/mail
       - name: 'Send Email'
         uses: actions/github-script@v6
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JOB_CONTEXT: ${{ toJson(job) }}
         with:
           script: |
             const sgMail = require('@sendgrid/mail')
             sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
+            const githubContext = JSON.parse(process.env.GITHUB_CONTEXT)
+            const jobContext = JSON.parse(process.env.JOB_CONTEXT)
+
             const msg = {
                 to: process.env.SENDGRID_RECIPIENTS.split(";"),
                 from: process.env.SENDGRID_SENDER,
-                subject: `Workflow ${github.workflow} ${context.job.status} in ${github.repository}`,
-                text: `Workflow ${github.workflow} ${context.job.status} in ${github.repository}
-                Link to workflow: ${github.server_url}/${github.repository}/actions/runs/${github.run_id}`,
-                html: `<p>Workflow <a href="${github.server_url}/${github.repository}/actions/runs/${github.run_id}">${github.workflow}></a> ${context.job.status} in ${github.repository}</p>`,
+                subject: `Workflow ${githubContext.workflow} ${jobContext.status} in ${githubContext.repository}`,
+                text: `Workflow ${githubContext.workflow} ${jobContext.status} in ${githubContext.repository}
+                Link to workflow: ${githubContext.server_url}/${githubContext.repository}/actions/runs/${githubContext.run_id}`,
+                html: `<p>Workflow <a href="${githubContext.server_url}/${githubContext.repository}/actions/runs/${githubContext.run_id}">${githubContext.workflow}></a> ${jobContext.status} in ${githubContext.repository}</p>`,
             }
 
             sgMail
