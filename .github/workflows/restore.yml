@@ -2,19 +2,12 @@ name: Restore
 concurrency: restore
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'restore.sh'
-      - '.github/workflows/restore.yml'
   workflow_dispatch:
     inputs:
-      is_dry_run:
-        description: 'Dry-run'
+      backup_date:
+        description: 'Backup date (YYYYMMDD)'
         required: true
-        default: false
-        type: boolean
+        type: string
 
 permissions:
   contents: read
@@ -24,6 +17,7 @@ env:
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  BACKUP_DATE: ${{ inputs.backup_date }}
   KUBE_CA_BASE64: ${{ secrets.KUBE_CA_BASE64 }}
   KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
   KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
@@ -54,6 +48,8 @@ jobs:
           check_variable "AZURE_TENANT_ID"
           check_variable "AZURE_CLIENT_ID"
           check_variable "AZURE_SUBSCRIPTION_ID"
+
+          check_variable "BACKUP_DATE"
 
           check_variable "KUBE_CA_BASE64"
           check_variable "KUBE_API_SERVER"
@@ -87,60 +83,63 @@ jobs:
           client-id: ${{ env.AZURE_CLIENT_ID }}
           tenant-id: ${{ env.AZURE_TENANT_ID }}
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
-      - name: Login Kubernetes
-        shell: bash
-        run: |
-          echo "${KUBE_CA_BASE64}" | base64 -d > cert.pem
-          kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
-          kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
-          kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
-          kubectl config use-context "${KUBE_CONTEXT}"
-          kubectl version
-      - name: Execute backup script
+      - name: Download from blob storage
         shell: bash
         run: |
           mkdir backup
-          ./backup.sh -y
-          echo
-          echo "[Backup Files]"
-          ls -Al backup/
-      - name: Upload to blob storage
-        if: github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && !inputs.is_dry_run )
-        shell: bash
-        run: |
-          BLOB_PREFIX=$(date +%Y%m%d)
-          echo "Uploading Bookstack database backup file ..."
-          az storage blob upload \
+          BLOB_PREFIX=${BACKUP_DATE}
+          echo "Downloading Bookstack database backup file ..."
+          az storage blob download \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/bookstack.sql' \
             --name "$BLOB_PREFIX/bookstack.sql" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
           echo
-          echo "Uploading Bookstack upload backup file ..."
-          az storage blob upload \
+          echo "Downloading Bookstack upload backup file ..."
+          az storage blob download \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/uploads.tgz' \
             --name "$BLOB_PREFIX/uploads.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
           echo
-          echo "Uploading Bookstack storage backup file ..."
-          az storage blob upload \
+          echo "Downloading Bookstack storage backup file ..."
+          az storage blob download \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/storage.tgz' \
             --name "$BLOB_PREFIX/storage.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
-      - name: Cleanup
-        if: always()
-        shell: bash
-        run: |
-          echo "Cleaning up ..."
-          kubectl config delete-context "${KUBE_CONTEXT}" || true
-          kubectl config delete-user "clusterUser_${KUBE_CONTEXT}" || true
-          kubectl config delete-cluster "${KUBE_CONTEXT}" || true
-          rm -f cert.pem || true
-          rm -rf backup || true
-          az logout || true
-          az account clear || true
+          echo
+          echo "[Backup Files]"
+          ls -Al backup/
+      # - name: Login Kubernetes
+      #   shell: bash
+      #   run: |
+      #     echo "${KUBE_CA_BASE64}" | base64 -d > cert.pem
+      #     kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
+      #     kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
+      #     kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
+      #     kubectl config use-context "${KUBE_CONTEXT}"
+      #     kubectl version
+      # - name: Execute backup script
+      #   shell: bash
+      #   run: |
+      #     mkdir backup
+      #     ./backup.sh -y
+      #     echo
+      #     echo "[Backup Files]"
+      #     ls -Al backup/
+      # - name: Cleanup
+      #   if: always()
+      #   shell: bash
+      #   run: |
+      #     echo "Cleaning up ..."
+      #     kubectl config delete-context "${KUBE_CONTEXT}" || true
+      #     kubectl config delete-user "clusterUser_${KUBE_CONTEXT}" || true
+      #     kubectl config delete-cluster "${KUBE_CONTEXT}" || true
+      #     rm -f cert.pem || true
+      #     rm -rf backup || true
+      #     az logout || true
+      #     az account clear || true
