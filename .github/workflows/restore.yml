@@ -1,0 +1,187 @@
+name: Restore
+concurrency: restore
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'restore.sh'
+      - '.github/workflows/restore.yml'
+  workflow_dispatch:
+    inputs:
+      is_dry_run:
+        description: 'Dry-run'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  KUBE_CA_BASE64: ${{ secrets.KUBE_CA_BASE64 }}
+  KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
+  KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
+  KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
+  WIKI_NAMESPACE: ${{ secrets.WIKI_NAMESPACE }}
+  MYSQL_APP_LABEL: ${{ secrets.MYSQL_APP_LABEL }}
+  BOOKSTACK_APP_LABEL: ${{ secrets.BOOKSTACK_APP_LABEL }}
+  BLOB_CONTAINER_NAME: ${{ secrets.BLOB_CONTAINER_NAME }}
+  STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+  SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+  SENDGRID_RECIPIENTS: ${{ secrets.SENDGRID_RECIPIENTS }}
+  SENDGRID_SENDER: ${{ secrets.SENDGRID_SENDER }}
+
+jobs:
+  restore:
+    name: Restore
+    runs-on: ubuntu-latest
+    environment: acceptance
+    steps:
+      - name: 'Checkout self'
+        uses: actions/checkout@v4
+      - name: 'Check variables'
+        shell: bash
+        run: |
+          check_variable() {
+            name="${1}"
+            value="$(printf '%s' "${!name}")"
+            if [ -z "${value}" ]; then missing_vars+="${name}"$'\n' && passed="false"; fi
+          }
+
+          check_variable "AZURE_TENANT_ID"
+          check_variable "AZURE_CLIENT_ID"
+          check_variable "AZURE_SUBSCRIPTION_ID"
+
+          check_variable "KUBE_CA_BASE64"
+          check_variable "KUBE_API_SERVER"
+          check_variable "KUBE_USER_TOKEN"
+          check_variable "KUBE_CONTEXT"
+
+          check_variable "WIKI_NAMESPACE"
+          check_variable "MYSQL_APP_LABEL"
+          check_variable "BOOKSTACK_APP_LABEL"
+
+          check_variable "BLOB_CONTAINER_NAME"
+          check_variable "STORAGE_ACCOUNT_NAME"
+
+          check_variable "SENDGRID_API_KEY"
+          check_variable "SENDGRID_RECIPIENTS"
+          check_variable "SENDGRID_SENDER"
+
+          if [ "$passed" = "false" ]; then
+            printf '::error::One or more mandatory secret(s) are not configured.\n%s' "$missing_vars"
+            exit 90
+          else
+            echo 'All mandatory secrets are configured.'
+          fi
+      - name: Print tool version
+        shell: bash
+        run: |
+          echo "[$(command -v az)]"
+          az version
+          echo
+          echo "[$(command -v kubectl)]"
+          kubectl version --client=true
+      - name: Az CLI login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - name: Login Kubernetes
+        shell: bash
+        run: |
+          echo "${KUBE_CA_BASE64}" | base64 -d > cert.pem
+          kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
+          kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
+          kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
+          kubectl config use-context "${KUBE_CONTEXT}"
+          kubectl version
+      - name: Execute backup script
+        shell: bash
+        run: |
+          mkdir backup
+          ./backup.sh -y
+          echo
+          echo "[Backup Files]"
+          ls -Al backup/
+      - name: Upload to blob storage
+        if: github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && !inputs.is_dry_run )
+        shell: bash
+        run: |
+          BLOB_PREFIX=$(date +%Y%m%d)
+          echo "Uploading Bookstack database backup file ..."
+          az storage blob upload \
+            --container-name "$BLOB_CONTAINER_NAME" \
+            --file 'backup/bookstack.sql' \
+            --name "$BLOB_PREFIX/bookstack.sql" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --auth-mode key --only-show-errors --output none
+          echo
+          echo "Uploading Bookstack upload backup file ..."
+          az storage blob upload \
+            --container-name "$BLOB_CONTAINER_NAME" \
+            --file 'backup/uploads.tgz' \
+            --name "$BLOB_PREFIX/uploads.tgz" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --auth-mode key --only-show-errors --output none
+          echo
+          echo "Uploading Bookstack storage backup file ..."
+          az storage blob upload \
+            --container-name "$BLOB_CONTAINER_NAME" \
+            --file 'backup/storage.tgz' \
+            --name "$BLOB_PREFIX/storage.tgz" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --auth-mode key --only-show-errors --output none
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          echo "Cleaning up ..."
+          kubectl config delete-context "${KUBE_CONTEXT}" || true
+          kubectl config delete-user "clusterUser_${KUBE_CONTEXT}" || true
+          kubectl config delete-cluster "${KUBE_CONTEXT}" || true
+          rm -f cert.pem || true
+          rm -rf backup || true
+          az logout || true
+          az account clear || true
+      - name: 'Install email library'
+        shell: bash
+        run: |
+          npm install @sendgrid/mail
+      - name: 'Notify via Email'
+        uses: actions/github-script@v6
+        env:
+          JOB_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const sgMail = require('@sendgrid/mail')
+            const {
+              SENDGRID_API_KEY,
+              GITHUB_WORKFLOW,
+              GITHUB_REPOSITORY,
+              GITHUB_SERVER_URL,
+              GITHUB_RUN_ID,
+              JOB_STATUS
+            } = process.env
+            sgMail.setApiKey(SENDGRID_API_KEY)
+
+            const msg = {
+                to: process.env.SENDGRID_RECIPIENTS.split(";"),
+                from: process.env.SENDGRID_SENDER,
+                subject: `Workflow ${GITHUB_WORKFLOW} ${JOB_STATUS} in ${GITHUB_REPOSITORY}`,
+                text: `Workflow ${GITHUB_WORKFLOW} ${JOB_STATUS} in ${GITHUB_REPOSITORY}
+            Link to workflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`,
+                html: `<p>Workflow <a href="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}">${GITHUB_WORKFLOW}</a> ${JOB_STATUS} in ${GITHUB_REPOSITORY}</p>`,
+            }
+
+            sgMail
+                .send(msg)
+                .then(() => console.log('Mail sent successfully'))
+                .catch(error => { throw error.toString() })
