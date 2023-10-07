@@ -89,28 +89,40 @@ jobs:
           mkdir backup
           BLOB_PREFIX=${BACKUP_DATE}
           echo "Downloading Bookstack database backup file ..."
+          START=$(date +%s.%N)
           az storage blob download \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/bookstack.sql' \
             --name "$BLOB_PREFIX/bookstack.sql" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
+          END=$(date +%s.%N)
+          DIFF=$(echo "$END - $START" | bc)
+          printf "Download completed in %s seconds\n" "$DIFF"
           echo
           echo "Downloading Bookstack upload backup file ..."
+          START=$(date +%s.%N)
           az storage blob download \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/uploads.tgz' \
             --name "$BLOB_PREFIX/uploads.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
+          END=$(date +%s.%N)
+          DIFF=$(echo "$END - $START" | bc)
+          printf "Download completed in %s seconds\n" "$DIFF"
           echo
           echo "Downloading Bookstack storage backup file ..."
+          START=$(date +%s.%N)
           az storage blob download \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/storage.tgz' \
             --name "$BLOB_PREFIX/storage.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
+          END=$(date +%s.%N)
+          DIFF=$(echo "$END - $START" | bc)
+          printf "Download completed in %s seconds\n" "$DIFF"
           echo
           echo "[Backup Files]"
           ls -Al backup/
