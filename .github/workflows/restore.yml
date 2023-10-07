@@ -126,32 +126,28 @@ jobs:
           echo
           echo "[Backup Files]"
           ls -Al backup/
-      # - name: Login Kubernetes
-      #   shell: bash
-      #   run: |
-      #     echo "${KUBE_CA_BASE64}" | base64 -d > cert.pem
-      #     kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
-      #     kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
-      #     kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
-      #     kubectl config use-context "${KUBE_CONTEXT}"
-      #     kubectl version
-      # - name: Execute backup script
-      #   shell: bash
-      #   run: |
-      #     mkdir backup
-      #     ./backup.sh -y
-      #     echo
-      #     echo "[Backup Files]"
-      #     ls -Al backup/
-      # - name: Cleanup
-      #   if: always()
-      #   shell: bash
-      #   run: |
-      #     echo "Cleaning up ..."
-      #     kubectl config delete-context "${KUBE_CONTEXT}" || true
-      #     kubectl config delete-user "clusterUser_${KUBE_CONTEXT}" || true
-      #     kubectl config delete-cluster "${KUBE_CONTEXT}" || true
-      #     rm -f cert.pem || true
-      #     rm -rf backup || true
-      #     az logout || true
-      #     az account clear || true
+      - name: Login Kubernetes
+        shell: bash
+        run: |
+          echo "${KUBE_CA_BASE64}" | base64 -d > cert.pem
+          kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
+          kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
+          kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
+          kubectl config use-context "${KUBE_CONTEXT}"
+          kubectl version
+      - name: Execute restore script
+        shell: bash
+        run: |
+          ./restores.sh -y
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          echo "Cleaning up ..."
+          kubectl config delete-context "${KUBE_CONTEXT}" || true
+          kubectl config delete-user "clusterUser_${KUBE_CONTEXT}" || true
+          kubectl config delete-cluster "${KUBE_CONTEXT}" || true
+          rm -f cert.pem || true
+          rm -rf backup || true
+          az logout || true
+          az account clear || true
