@@ -143,7 +143,7 @@ jobs:
           HOST_FROM: ${{ env.UPDATE_HOST_FROM }}
           HOST_TO: ${{ env.UPDATE_HOST_TO }}
         run: |
-          ./restores.sh -y
+          ./restore.sh -y
       - name: Cleanup
         if: always()
         shell: bash
