@@ -27,6 +27,8 @@ env:
   BOOKSTACK_APP_LABEL: ${{ secrets.BOOKSTACK_APP_LABEL }}
   BLOB_CONTAINER_NAME: ${{ secrets.BLOB_CONTAINER_NAME }}
   STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+  UPDATE_HOST_FROM: ${{ secrets.UPDATE_HOST_FROM }}
+  UPDATE_HOST_TO: ${{ secrets.UPDATE_HOST_TO }}
 
 jobs:
   restore:
@@ -137,6 +139,9 @@ jobs:
           kubectl version
       - name: Execute restore script
         shell: bash
+        env:
+          HOST_FROM: ${{ env.UPDATE_HOST_FROM }}
+          HOST_TO: ${{ env.UPDATE_HOST_TO }}
         run: |
           ./restores.sh -y
       - name: Cleanup
