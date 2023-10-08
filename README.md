@@ -2,9 +2,9 @@
 
 This repository contians bash scripts and GitHub Actions workflows to backup and restore Bookstack nad its MySQL deployed on a [Microk8s cluster](https://github.com/pacroy/microk8s-azure-vm) using [this Helm chart](https://github.com/pacroy/bookstack-helm).
 
-## CLI Usage
+## CLI Usages
 
-### CLI Usage - Prerequisites
+### CLI Usage Prerequisites
 
 1. Make sure [kubectl](https://kubernetes.io/docs/tasks/tools/) is installed, the current context is configured, and it can connect to the cluster successfully.
 2. The following environment variables are set:
@@ -39,16 +39,19 @@ Execute the script.
 bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main/restore.sh)
 ```
 
-## GitHub Actions Usage
+## GitHub Actions Usages
 
-### GitHub Actions Usage - Prerequisites
+### GitHub Actions Prerequisites
 
 1. Create AzureAD application, if you don't already have one.
 2. Grant the application so it can access storage account.
 3. [Configure OIDC federated credential](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux) in your application to allow GitHub Actions to acess your Azure environment.
 4. Fork or clone this repository into yours.
-5. Go to your repository settings and create a new environment `production`.
-6. Add the following environment secrets:
+
+### Backup Usage
+
+1. Go to your repository settings and create a new environment `production`.
+2. Add the following environment secrets:
 
 | Name                  | Description                                                       |
 | --------------------- | ----------------------------------------------------------------- |
@@ -68,6 +71,4 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 | STORAGE_ACCOUNT_NAME  | Azure storage account name for storing backup files               |
 | WIKI_NAMESPACE        | Kubernetes namespace containing bookstack release                 |
 
-### GitHub Actions Usage - Backup
-
-The `Backup` workflow is configured to run every Sunday's 0:00. You can manually run it at anytime you want.
+3. The `Backup` workflow is configured to run every Sunday's 0:00. You can also manually run it at anytime you want.
