@@ -12,6 +12,16 @@ stop_clock() {
     printf "$1" "$DIFF"
 }
 
+handle_returncode_2() {
+    if [ $1 -ne 0 ]; then
+        if [ $1 -eq 2 ]; then
+            echo "::warning::There was an error while copying data. If error says 'Unexpected EOF in archive' then this is usually okay. You may still double check."
+        else
+            exit $1
+        fi
+    fi
+}
+
 # Check Parameters
 [ -z "$KUBE_CONTEXT" ] && echo "ERROR: Environment variable KUBE_CONTEXT is not set" && exit 1
 [ -z "$WIKI_NAMESPACE" ] && echo "ERROR: Environment variable WIKI_NAMESPACE is not set" && exit 1
@@ -63,23 +73,20 @@ BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying Bookstack Uploads into %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
-kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/public/uploads < ./backup/uploads.tgz
+{
+    kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/public/uploads < ./backup/uploads.tgz
+} || return_code="$?"
 stop_clock "%s seconds\n"
+handle_returncode_2 "$return_code"
 echo
 
 printf "Copying Bookstack Storage into %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
 {
     kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/storage < ./backup/storage.tgz
-} || return_code=$?
+} || return_code="$?"
 stop_clock "%s seconds\n"
-if [ $return_code -ne 0 ]; then
-    if [ $return_code -eq 2 ]; then
-        echo "::warning::There was an error while copying data. If error says 'Unexpected EOF in archive' then this is usually okay. You may still double check."
-    else
-        exit $return_code
-    fi
-fi
+handle_returncode_2 "$return_code"
 
 echo
 
