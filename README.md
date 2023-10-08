@@ -48,7 +48,7 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 3. [Configure OIDC federated credential](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux) in your application to allow GitHub Actions to acess your Azure environment.
 4. Fork or clone this repository into yours.
 
-### Backup Usage
+### GitHub Actions Usages - Backup
 
 1. Go to your repository settings and create a new environment `production`.
 2. Add the following environment secrets:
@@ -72,3 +72,27 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 | WIKI_NAMESPACE        | Kubernetes namespace containing bookstack release                 |
 
 3. The `Backup` workflow is configured to run every Sunday's 0:00. You can also manually run it at anytime you want.
+
+# GitHub Actions Usages - Restore
+
+1. Go to your repository settings and create a new environment you want to restore to.
+2. Add the following environment secrets:
+
+| Name                  | Description                                                           |
+| --------------------- | --------------------------------------------------------------------- |
+| AZURE_CLIENT_ID       | AzureAD application client ID                                         |
+| AZURE_SUBSCRIPTION_ID | Azure subscription ID                                                 |
+| AZURE_TENANT_ID       | Azure tenant ID                                                       |
+| BLOB_CONTAINER_NAME   | Blob container name within Azure storage for downloading backup files |
+| BOOKSTACK_APP_LABEL   | Bookstack pod label e.g. `release-bookstack`                          |
+| KUBE_API_SERVER       | Kubeconfig clusters.cluster.server                                    |
+| KUBE_CA_BASE64        | Kubeconfig clusters.cluster.certificate-authority-data                |
+| KUBE_CONTEXT          | Kubeconfig contexts.context.name                                      |
+| KUBE_USER_TOKEN       | Kubeconfig users.user.token                                           |
+| MYSQL_APP_LABEL       | MySQL pod label e.g. `release-mysql`                                  |
+| STORAGE_ACCOUNT_NAME  | Azure storage account name for downloading backup files               |
+| WIKI_NAMESPACE        | Kubernetes namespace containing bookstack release                     |
+| UPDATE_HOST_FROM      | *Optional.* Domain to search in the URLs.                             |
+| UPDATE_HOST_TO        | *Optional.* Domain to replace in the URLs.                            |
+
+3. Run the workflow `Restore` and input backup date e.g. `20231008` and environment name to restore.
