@@ -2,6 +2,17 @@
 set -o errexit
 set -o pipefail
 
+start_clock() {
+    START=$(date +%s.%N)
+}
+
+stop_clock() {
+    END=$(date +%s.%N)
+    DIFF=$(echo "$END - $START" | bc)
+    # shellcheck disable=SC2059
+    printf "$1" "$DIFF"
+}
+
 # Check Parameters
 [ -z "$KUBE_CONTEXT" ] && echo "ERROR: Environment variable KUBE_CONTEXT is not set" && exit 1
 [ -z "$WIKI_NAMESPACE" ] && echo "ERROR: Environment variable WIKI_NAMESPACE is not set" && exit 1
@@ -12,7 +23,7 @@ BOOKSTACK_CONTAINER="bookstack"
 
 # Print parameters
 echo "KUBE_CONTEXT       : $KUBE_CONTEXT"
-echo "WIKI_NAMESPACE      : $WIKI_NAMESPACE"
+echo "WIKI_NAMESPACE     : $WIKI_NAMESPACE"
 echo "MYSQL_APP_LABEL    : $MYSQL_APP_LABEL"
 echo "BOOKSTACK_APP_LABEL: $BOOKSTACK_APP_LABEL"
 echo
@@ -28,11 +39,10 @@ if [ -z "$MYSQL_PODS" ]; then echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod"
 MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying BookStack MySQL DB from %s ... " "$MYSQL_POD_NAME"
-START=$(date +%s.%N)
+start_clock
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "MYSQL_PWD=secret mysqldump --all-databases" > ./backup/bookstack.sql
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF" 
+stop_clock "%s seconds\n"
+echo
 
 # Backup Bookstack
 BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE")"
@@ -40,15 +50,12 @@ if [ -z "$BOOKSTACK_PODS" ]; then echo "ERROR: Cannot find any $BOOKSTACK_APP_LA
 BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying BookStack Uploads from %s ... " "$BOOKSTACK_POD_NAME"
-START=$(date +%s.%N)
+start_clock
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/public/uploads && tar -czf - * | cat" > ./backup/uploads.tgz
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF"
+stop_clock "%s seconds\n"
+echo
 
 printf "Copying BookStack Storage from %s ... " "$BOOKSTACK_POD_NAME"
-START=$(date +%s.%N)
+start_clock
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/storage && tar -czf - uploads | cat" > ./backup/storage.tgz
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF"
+stop_clock "%s seconds\n"

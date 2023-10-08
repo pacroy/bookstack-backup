@@ -110,37 +110,55 @@ jobs:
         run: |
           mkdir backup
           ./backup.sh -y
-          echo
-          echo "[Backup Files]"
-          ls -Al backup/
       - name: Upload to blob storage
         if: github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && !inputs.is_dry_run )
         shell: bash
         run: |
+          echo "[Backup Files]"
+          ls -Al backup/
+          echo
+
+          start_clock() {
+            START=$(date +%s.%N)
+          }
+          
+          stop_clock() {
+              END=$(date +%s.%N)
+              DIFF=$(echo "$END - $START" | bc)
+              # shellcheck disable=SC2059
+              printf "$1" "$DIFF"
+          }
+
           BLOB_PREFIX=$(date +%Y%m%d)
           echo "Uploading Bookstack database backup file ..."
+          start_clock
           az storage blob upload \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/bookstack.sql' \
             --name "$BLOB_PREFIX/bookstack.sql" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
+          stop_clock "Upload completed in %s seconds\n"
           echo
           echo "Uploading Bookstack upload backup file ..."
+          start_clock
           az storage blob upload \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/uploads.tgz' \
             --name "$BLOB_PREFIX/uploads.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
+          stop_clock "Upload completed in %s seconds\n"
           echo
           echo "Uploading Bookstack storage backup file ..."
+          start_clock
           az storage blob upload \
             --container-name "$BLOB_CONTAINER_NAME" \
             --file 'backup/storage.tgz' \
             --name "$BLOB_PREFIX/storage.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
+          stop_clock "Upload completed in %s seconds\n"
       - name: Cleanup
         if: always()
         shell: bash
