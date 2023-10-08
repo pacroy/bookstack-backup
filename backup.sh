@@ -12,7 +12,7 @@ BOOKSTACK_CONTAINER="bookstack"
 
 # Print parameters
 echo "KUBE_CONTEXT       : $KUBE_CONTEXT"
-echo "WIKI_NAMESPACE      : $WIKI_NAMESPACE"
+echo "WIKI_NAMESPACE     : $WIKI_NAMESPACE"
 echo "MYSQL_APP_LABEL    : $MYSQL_APP_LABEL"
 echo "BOOKSTACK_APP_LABEL: $BOOKSTACK_APP_LABEL"
 echo
@@ -32,7 +32,8 @@ START=$(date +%s.%N)
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "MYSQL_PWD=secret mysqldump --all-databases" > ./backup/bookstack.sql
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF" 
+printf "%s seconds\n" "$DIFF"
+echo
 
 # Backup Bookstack
 BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE")"
@@ -45,6 +46,7 @@ kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --c
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
 printf "%s seconds\n" "$DIFF"
+echo
 
 printf "Copying BookStack Storage from %s ... " "$BOOKSTACK_POD_NAME"
 START=$(date +%s.%N)
