@@ -8,6 +8,10 @@ on:
         description: 'Backup date (YYYYMMDD)'
         required: true
         type: string
+      environment:
+        description: 'Environment name to restore'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -34,7 +38,7 @@ jobs:
   restore:
     name: Restore
     runs-on: ubuntu-latest
-    environment: acceptance
+    environment: ${{ inputs.environment }}
     steps:
       - name: 'Checkout self'
         uses: actions/checkout@v4
