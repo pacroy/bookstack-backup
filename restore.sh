@@ -67,10 +67,20 @@ echo
 
 printf "Copying Bookstack Storage into %s ... " "$BOOKSTACK_POD_NAME"
 START=$(date +%s.%N)
-kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/storage < ./backup/storage.tgz
+{
+    kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/storage < ./backup/storage.tgz
+} || return_code=$?
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
 printf "%s seconds\n" "$DIFF"
+if [ $return_code -ne 0 ]; then
+    if [ $return_code -eq 2 ]; then
+        echo "::warning::There was an error while copying data. If error says 'Unexpected EOF in archive' then this is usually okay. You may still double check."
+    else
+        exit $return_code
+    fi
+fi
+
 echo
 
 printf "Recreating %s pod ...\n" "$BOOKSTACK_APP_LABEL"
