@@ -73,7 +73,7 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 
 3. The `Backup` workflow is configured to run every Sunday's 0:00. You can also manually run it at anytime you want.
 
-# GitHub Actions Usages - Restore
+### GitHub Actions Usages - Restore
 
 1. Go to your repository settings and create a new environment you want to restore to.
 2. Add the following environment secrets:
