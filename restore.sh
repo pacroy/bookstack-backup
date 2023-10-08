@@ -44,12 +44,13 @@ else
     DIFF=$(echo "$END - $START" | bc)
     printf "%s seconds\n" "$DIFF"
 fi 
-printf "\nRestoring MySQL DB on %s ... " "$MYSQL_POD_NAME"
+printf "Restoring MySQL DB on %s ... " "$MYSQL_POD_NAME"
 START=$(date +%s.%N)
 kubectl exec --context="$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && MYSQL_PWD=secret mysql < /root/bookstack.sql && rm /root/bookstack.sql"
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
 printf "%s seconds\n" "$DIFF"
+echo
 
 # Restore Bookstack
 BOOKSTACK_PODS="$(kubectl get pod -o name -l app="$BOOKSTACK_APP_LABEL" --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE")"
@@ -62,6 +63,7 @@ kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --contai
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
 printf "%s seconds\n" "$DIFF"
+echo
 
 printf "Copying Bookstack Storage into %s ... " "$BOOKSTACK_POD_NAME"
 START=$(date +%s.%N)
@@ -69,6 +71,7 @@ kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --contai
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
 printf "%s seconds\n" "$DIFF"
+echo
 
 printf "Recreating %s pod ...\n" "$BOOKSTACK_APP_LABEL"
 kubectl scale --replicas=0 deploy -l app="$BOOKSTACK_APP_LABEL" --namespace="$WIKI_NAMESPACE"
