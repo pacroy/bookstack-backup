@@ -2,6 +2,16 @@
 set -o errexit
 set -o pipefail
 
+start_clock() {
+    START=$(date +%s.%N)
+}
+
+stop_clock() {
+    END=$(date +%s.%N)
+    DIFF=$(echo "$END - $START" | bc)
+    printf "$1" "$DIFF"
+}
+
 # Check Parameters
 [ -z "$KUBE_CONTEXT" ] && echo "ERROR: Environment variable KUBE_CONTEXT is not set" && exit 1
 [ -z "$WIKI_NAMESPACE" ] && echo "ERROR: Environment variable WIKI_NAMESPACE is not set" && exit 1
@@ -28,28 +38,22 @@ if [ -z "$MYSQL_PODS" ]; then echo "ERROR: Cannot find any $MYSQL_APP_LABEL pod"
 MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying MySQL DB Backup into %s ... " "$MYSQL_POD_NAME"
-START=$(date +%s.%N)
+start_clock
 tar -czf - -C ./backup bookstack.sql | kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- tar -xzf - -C /root
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF"
+stop_clock "%s seconds\n"
 
 if { [ -z "$HOST_FROM" ] || [ -z "$HOST_TO" ]; }; then 
     printf "HOST_FROM and/or HOST_TO not specified. Skip updating hostname.\n"
 else
     printf "Updating hostname from '%s' to '%s' ... " "$HOST_FROM" "$HOST_TO"
-    START=$(date +%s.%N)
+    start_clock
     kubectl exec --context="$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "sed -i'.bak' -e 's/$HOST_FROM/$HOST_TO/g' /root/bookstack.sql"
-    END=$(date +%s.%N)
-    DIFF=$(echo "$END - $START" | bc)
-    printf "%s seconds\n" "$DIFF"
+    stop_clock "%s seconds\n"
 fi 
 printf "Restoring MySQL DB on %s ... " "$MYSQL_POD_NAME"
-START=$(date +%s.%N)
+start_clock
 kubectl exec --context="$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && MYSQL_PWD=secret mysql < /root/bookstack.sql && rm /root/bookstack.sql"
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF"
+stop_clock "%s seconds\n"
 echo
 
 # Restore Bookstack
@@ -58,21 +62,17 @@ if [ -z "$BOOKSTACK_PODS" ]; then echo "ERROR: Cannot find any $BOOKSTACK_APP_LA
 BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying Bookstack Uploads into %s ... " "$BOOKSTACK_POD_NAME"
-START=$(date +%s.%N)
+start_clock
 kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/public/uploads < ./backup/uploads.tgz
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF"
+stop_clock "%s seconds\n"
 echo
 
 printf "Copying Bookstack Storage into %s ... " "$BOOKSTACK_POD_NAME"
-START=$(date +%s.%N)
+start_clock
 {
     kubectl exec -i --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- tar -xzf - -C /var/www/bookstack/storage < ./backup/storage.tgz
 } || return_code=$?
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-printf "%s seconds\n" "$DIFF"
+stop_clock "%s seconds\n"
 if [ $return_code -ne 0 ]; then
     if [ $return_code -eq 2 ]; then
         echo "::warning::There was an error while copying data. If error says 'Unexpected EOF in archive' then this is usually okay. You may still double check."
