@@ -9,15 +9,16 @@ start_clock() {
 stop_clock() {
     END=$(date +%s.%N)
     DIFF=$(echo "$END - $START" | bc)
+    # shellcheck disable=SC2059
     printf "$1" "$DIFF"
 }
 
 handle_returncode_2() {
-    if [ $1 -ne 0 ]; then
-        if [ $1 -eq 2 ]; then
+    if [ "$1" -ne 0 ]; then
+        if [ "$1" -eq 2 ]; then
             echo "::warning::There was an error while copying data. If error says 'Unexpected EOF in archive' then this is usually okay. You may still double check."
         else
-            exit $1
+            exit "$1"
         fi
     fi
 }
