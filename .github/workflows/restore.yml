@@ -25,7 +25,7 @@ env:
   KUBE_CA_BASE64: ${{ secrets.KUBE_CA_BASE64 }}
   KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
   KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
-  KUBE_CLIENT_KEY: ${{ secrets.KUBE_USER_TOKEN }}
+  KUBE_CLIENT_KEY: ${{ secrets.KUBE_CLIENT_KEY }}
   KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
   KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
   WIKI_NAMESPACE: ${{ secrets.WIKI_NAMESPACE }}
