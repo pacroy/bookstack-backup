@@ -25,6 +25,8 @@ env:
   KUBE_CA_BASE64: ${{ secrets.KUBE_CA_BASE64 }}
   KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
   KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
+  KUBE_CLIENT_KEY: ${{ secrets.KUBE_USER_TOKEN }}
+  KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
   KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
   WIKI_NAMESPACE: ${{ secrets.WIKI_NAMESPACE }}
   MYSQL_APP_LABEL: ${{ secrets.MYSQL_APP_LABEL }}
@@ -59,8 +61,14 @@ jobs:
 
           check_variable "KUBE_CA_BASE64"
           check_variable "KUBE_API_SERVER"
-          check_variable "KUBE_USER_TOKEN"
           check_variable "KUBE_CONTEXT"
+
+          if [ -n "${KUBE_USER_TOKEN}" ]; then
+            check_variable "KUBE_USER_TOKEN"
+          else
+            check_variable "KUBE_CLIENT_KEY"
+            check_variable "KUBE_CLIENT_CERT"
+          fi
 
           check_variable "WIKI_NAMESPACE"
           check_variable "MYSQL_APP_LABEL"
@@ -143,7 +151,13 @@ jobs:
         run: |
           echo "${KUBE_CA_BASE64}" | base64 -d > cert.pem
           kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
-          kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
+          if [ -n "${KUBE_USER_TOKEN}" ]; then
+            kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
+          else
+            echo "${KUBE_CLIENT_CERT}" | base64 -d > client.crt
+            echo "${KUBE_CLIENT_KEY}" | base64 -d > client.key
+            kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --client-certificate=client.crt --client-key=client.key --embed-certs=true
+          fi
           kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
           kubectl config use-context "${KUBE_CONTEXT}"
           kubectl version
