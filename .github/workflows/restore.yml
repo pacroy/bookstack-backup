@@ -92,7 +92,7 @@ jobs:
           echo "[$(command -v kubectl)]"
           kubectl version --client=true
       - name: Az CLI login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}
           tenant-id: ${{ env.AZURE_TENANT_ID }}
