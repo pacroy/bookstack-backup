@@ -50,7 +50,7 @@ MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying MySQL DB Backup into %s ... " "$MYSQL_POD_NAME"
 start_clock
-cat ./backup/bookstack.tgz | kubectl exec --stdin --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- tar -xzf - -C /root
+kubectl exec --stdin --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- tar -xzf - -C /root < ./backup/bookstack.tgz
 stop_clock "%s seconds\n"
 
 if { [ -z "$HOST_FROM" ] || [ -z "$HOST_TO" ]; }; then 
