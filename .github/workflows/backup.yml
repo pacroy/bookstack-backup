@@ -142,8 +142,8 @@ jobs:
           start_clock
           az storage blob upload \
             --container-name "$BLOB_CONTAINER_NAME" \
-            --file 'backup/bookstack.sql' \
-            --name "$BLOB_PREFIX/bookstack.sql" \
+            --file 'backup/bookstack.tgz' \
+            --name "$BLOB_PREFIX/bookstack.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
           stop_clock "Upload completed in %s seconds\n"
