@@ -17,7 +17,10 @@ on:
       environment:
         description: 'Environment name to restore'
         required: true
-        type: string
+        type: choice
+        options:
+        - production
+        - acceptance
 
 permissions:
   contents: read
