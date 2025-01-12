@@ -180,10 +180,12 @@ jobs:
           az logout || true
           az account clear || true
       - name: 'Install email library'
+        if: always()
         shell: bash
         run: |
           npm install @sendgrid/mail
       - name: 'Notify via Email'
+        if: always()
         uses: actions/github-script@v7
         env:
           JOB_STATUS: ${{ job.status }}
