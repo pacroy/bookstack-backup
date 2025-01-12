@@ -145,7 +145,7 @@ jobs:
             --file 'backup/bookstack.tgz' \
             --name "$BLOB_PREFIX/bookstack.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors --output none
+            --auth-mode key --only-show-errors --output none --overwrite
           stop_clock "Upload completed in %s seconds\n"
           echo
           echo "Uploading Bookstack upload backup file ..."
@@ -155,7 +155,7 @@ jobs:
             --file 'backup/uploads.tgz' \
             --name "$BLOB_PREFIX/uploads.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors --output none
+            --auth-mode key --only-show-errors --output none --overwrite
           stop_clock "Upload completed in %s seconds\n"
           echo
           echo "Uploading Bookstack storage backup file ..."
@@ -165,7 +165,7 @@ jobs:
             --file 'backup/storage.tgz' \
             --name "$BLOB_PREFIX/storage.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors --output none
+            --auth-mode key --only-show-errors --output none --overwrite
           stop_clock "Upload completed in %s seconds\n"
       - name: Cleanup
         if: always()
