@@ -11,7 +11,10 @@ on:
       environment:
         description: 'Environment name to restore'
         required: true
-        type: string
+        type: choice
+        options:
+        - production
+        - acceptance
 
 permissions:
   contents: read
@@ -118,8 +121,8 @@ jobs:
           start_clock
           az storage blob download \
             --container-name "$BLOB_CONTAINER_NAME" \
-            --file 'backup/bookstack.sql' \
-            --name "$BLOB_PREFIX/bookstack.sql" \
+            --file 'backup/bookstack.tgz' \
+            --name "$BLOB_PREFIX/bookstack.tgz" \
             --account-name "$STORAGE_ACCOUNT_NAME" \
             --auth-mode key --only-show-errors --output none
           stop_clock "Download completed in %s seconds\n"
