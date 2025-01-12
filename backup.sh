@@ -3,11 +3,11 @@ set -o errexit
 set -o pipefail
 
 start_clock() {
-    START=$(date +%s.%N)
+    START=$(date +%s)
 }
 
 stop_clock() {
-    END=$(date +%s.%N)
+    END=$(date +%s)
     DIFF=$((END - START))
     # shellcheck disable=SC2059
     printf "$1" "$DIFF"
