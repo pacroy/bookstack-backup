@@ -2,12 +2,6 @@ name: Restore
 concurrency: restore
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'restore.sh'
-      - '.github/workflows/restore.yml'
   workflow_dispatch:
     inputs:
       backup_date:
