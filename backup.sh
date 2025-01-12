@@ -8,7 +8,7 @@ start_clock() {
 
 stop_clock() {
     END=$(date +%s.%N)
-    DIFF=$(($END - $START))
+    DIFF=$((END - START))
     # shellcheck disable=SC2059
     printf "$1" "$DIFF"
 }
