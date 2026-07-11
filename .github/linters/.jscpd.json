@@ -1,0 +1,7 @@
+{
+    "ignore": [
+        ".github/workflows/backup.yml",
+        ".github/workflows/restore.yml",
+        "README.md"
+    ]
+}
