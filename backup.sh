@@ -42,20 +42,17 @@ printf "Copying BookStack MySQL DB from %s ... " "$MYSQL_POD_NAME"
 start_clock
 readarray -t USER_DATABASES < <(
     kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
-        bash -c 'MYSQL_PWD=secret mysql --batch --skip-column-names -e "SHOW DATABASES"' |
+        env MYSQL_PWD=secret mysql --batch --skip-column-names -e "SHOW DATABASES" |
         awk '!/^(information_schema|mysql|performance_schema|sys)$/'
 )
 if [ "${#USER_DATABASES[@]}" -eq 0 ]; then
-    echo "ERROR: No non-system databases found to backup. Verify the MySQL connection and that the instance contains application databases." >&2
+    echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME. Verify the MySQL connection and that the instance contains application databases." >&2
     exit 91
 fi
-USER_DATABASES_ARGS="$(printf '%q' "${USER_DATABASES[0]}")"
-for USER_DATABASE in "${USER_DATABASES[@]:1}"; do
-    USER_DATABASES_ARGS+=" $(printf '%q' "$USER_DATABASE")"
-done
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "MYSQL_PWD=secret mysqldump --databases ${USER_DATABASES_ARGS} --routines --triggers --events > bookstack.sql"
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "tar -czf - bookstack.sql | cat" > ./backup/bookstack.tgz
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "rm -f bookstack.sql"
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
+    env MYSQL_PWD=secret mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
+tar -czf ./backup/bookstack.tgz -C ./backup bookstack.sql
+rm -f ./backup/bookstack.sql
 stop_clock "%s seconds\n"
 echo
 
