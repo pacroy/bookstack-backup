@@ -1,6 +1,6 @@
 # Bookstack Backup & Restore
 
-This repository contians bash scripts and GitHub Actions workflows to backup and restore Bookstack nad its MySQL deployed on a [Microk8s cluster](https://github.com/pacroy/microk8s-azure-vm) using [this Helm chart](https://github.com/pacroy/bookstack-helm).
+This repository contains bash scripts and GitHub Actions workflows to backup and restore Bookstack nad its MySQL deployed on a [Microk8s cluster](https://github.com/pacroy/microk8s-azure-vm) using [this Helm chart](https://github.com/pacroy/bookstack-helm).
 
 ## CLI Usages
 
@@ -48,7 +48,7 @@ bash -e <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main
 
 1. Create AzureAD application, if you don't already have one.
 2. Grant the application so it can access storage account.
-3. [Configure OIDC federated credential](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux) in your application to allow GitHub Actions to acess your Azure environment.
+3. [Configure OIDC federated credential](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux) in your application to allow GitHub Actions to access your Azure environment.
 4. Fork or clone this repository into yours.
 
 ### GitHub Actions Usages - Backup
