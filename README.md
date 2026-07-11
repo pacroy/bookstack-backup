@@ -14,6 +14,7 @@ This repository contians bash scripts and GitHub Actions workflows to backup and
     export WIKI_NAMESPACE="wiki"
     export MYSQL_APP_LABEL="release-mysql"
     export BOOKSTACK_APP_LABEL="release-bookstack"
+    export MYSQL_PASSWORD="secret" # optional when not using the chart default
     ```
 
 ### CLI Usage - Backup

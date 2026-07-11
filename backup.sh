@@ -18,6 +18,7 @@ stop_clock() {
 [ -z "$WIKI_NAMESPACE" ] && echo "ERROR: Environment variable WIKI_NAMESPACE is not set" && exit 1
 [ -z "$MYSQL_APP_LABEL" ] && echo "ERROR: Environment variable MYSQL_APP_LABEL is not set" && exit 1
 [ -z "$BOOKSTACK_APP_LABEL" ] && echo "ERROR: Environment variable BOOKSTACK_APP_LABEL is not set" && exit 1
+MYSQL_PASSWORD="${MYSQL_PASSWORD:-secret}"
 MYSQL_CONTAINER="bookstack-mysql"
 BOOKSTACK_CONTAINER="bookstack"
 
@@ -42,15 +43,15 @@ printf "Copying BookStack MySQL DB from %s ... " "$MYSQL_POD_NAME"
 start_clock
 readarray -t USER_DATABASES < <(
     kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
-        env MYSQL_PWD=secret mysql --batch --skip-column-names -e "SHOW DATABASES" |
+        env MYSQL_PWD="$MYSQL_PASSWORD" mysql --batch --skip-column-names -e "SHOW DATABASES" |
         awk '!/^(information_schema|mysql|performance_schema|sys)$/'
 )
 if [ "${#USER_DATABASES[@]}" -eq 0 ]; then
-    echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME. Verify MySQL connection and application databases exist." >&2
+    echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME." >&2
     exit 91
 fi
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
-    env MYSQL_PWD=secret mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
+    env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
 tar -czf ./backup/bookstack.tgz -C ./backup bookstack.sql
 rm -f ./backup/bookstack.sql
 stop_clock "%s seconds\n"

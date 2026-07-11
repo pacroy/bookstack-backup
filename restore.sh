@@ -14,11 +14,12 @@ stop_clock() {
 }
 
 handle_returncode_2() {
-    if [ "$1" -ne 0 ]; then
-        if [ "$1" -eq 2 ]; then
+    local return_code="${1:-0}"
+    if [ "$return_code" -ne 0 ]; then
+        if [ "$return_code" -eq 2 ]; then
             echo "::warning::There was an error while copying data. If error says 'Unexpected EOF in archive' then this is usually okay. You may still double check."
         else
-            exit "$1"
+            exit "$return_code"
         fi
     fi
 }
@@ -28,6 +29,7 @@ handle_returncode_2() {
 [ -z "$WIKI_NAMESPACE" ] && echo "ERROR: Environment variable WIKI_NAMESPACE is not set" && exit 1
 [ -z "$MYSQL_APP_LABEL" ] && echo "ERROR: Environment variable MYSQL_APP_LABEL is not set" && exit 1
 [ -z "$BOOKSTACK_APP_LABEL" ] && echo "ERROR: Environment variable BOOKSTACK_APP_LABEL is not set" && exit 1
+MYSQL_PASSWORD="${MYSQL_PASSWORD:-secret}"
 MYSQL_CONTAINER="bookstack-mysql"
 BOOKSTACK_CONTAINER="bookstack"
 
@@ -63,7 +65,7 @@ else
 fi 
 printf "Restoring MySQL DB on %s ... " "$MYSQL_POD_NAME"
 start_clock
-kubectl exec --context="$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && MYSQL_PWD=secret mysql < /root/bookstack.sql && rm /root/bookstack.sql"
+kubectl exec --context="$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- env MYSQL_PWD="$MYSQL_PASSWORD" bash -c "echo 'FLUSH PRIVILEGES;' >> /root/bookstack.sql && mysql < /root/bookstack.sql && rm /root/bookstack.sql"
 stop_clock "%s seconds\n"
 echo
 
