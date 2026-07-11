@@ -45,9 +45,10 @@ readarray -t USER_DATABASES < <(
         bash -c 'MYSQL_PWD=secret mysql --batch --skip-column-names -e "SHOW DATABASES"' |
         awk '!/^(information_schema|mysql|performance_schema|sys)$/'
 )
-if [ "${#USER_DATABASES[@]}" -eq 0 ]; then echo "ERROR: Cannot find any non-system database to backup" >&2 && exit 91; fi
-USER_DATABASES_ARGS="$(printf ' %q' "${USER_DATABASES[@]}")"
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "MYSQL_PWD=secret mysqldump --databases${USER_DATABASES_ARGS} --routines --triggers --events > bookstack.sql"
+if [ "${#USER_DATABASES[@]}" -eq 0 ]; then echo "ERROR: No non-system databases found to backup. Verify the MySQL connection and that the instance contains application databases." >&2 && exit 91; fi
+USER_DATABASES_ARGS="$(printf '%q ' "${USER_DATABASES[@]}")"
+USER_DATABASES_ARGS="${USER_DATABASES_ARGS% }"
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "MYSQL_PWD=secret mysqldump --databases ${USER_DATABASES_ARGS} --routines --triggers --events > bookstack.sql"
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "tar -czf - bookstack.sql | cat" > ./backup/bookstack.tgz
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- bash -c "rm -f bookstack.sql"
 stop_clock "%s seconds\n"
