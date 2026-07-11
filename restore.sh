@@ -83,6 +83,7 @@ stop_clock "%s seconds\n"
 handle_returncode_2 "$return_code"
 echo
 
+return_code=0
 printf "Copying Bookstack Storage into %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
 {
