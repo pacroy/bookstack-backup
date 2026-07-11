@@ -5,24 +5,24 @@ set -o pipefail
 EXIT_NO_DATABASES=91
 
 start_clock() {
-    START=$(date +%s)
+	START=$(date +%s)
 }
 
 stop_clock() {
-    END=$(date +%s)
-    DIFF=$((END - START))
-    # shellcheck disable=SC2059
-    printf "$1" "$DIFF"
+	END=$(date +%s)
+	DIFF=$((END - START))
+	# shellcheck disable=SC2059
+	printf "$1" "$DIFF"
 }
 
 cleanup_backup_files() {
-    rm -f ./backup/bookstack.sql ./backup/bookstack.tgz.tmp
+	rm -f ./backup/bookstack.sql ./backup/bookstack.tgz.tmp
 }
 
 cleanup_backup_files_on_exit() {
-    local exit_code=$?
-    cleanup_backup_files
-    exit "$exit_code"
+	local exit_code=$?
+	cleanup_backup_files
+	exit "$exit_code"
 }
 
 # Check Parameters
@@ -42,8 +42,8 @@ echo "BOOKSTACK_APP_LABEL: $BOOKSTACK_APP_LABEL"
 echo
 
 if [ -z "$1" ] || [ "$1" != '-y' ]; then
-    read -rp "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMESPACE..."
-    echo
+	read -rp "Press [Enter] to backup from $KUBE_CONTEXT/$WIKI_NAMESPACE..."
+	echo
 fi
 
 # Backup MySQL
@@ -54,19 +54,19 @@ MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
 printf "Copying BookStack MySQL DB from %s ... " "$MYSQL_POD_NAME"
 start_clock
 USER_DATABASE_LIST="$(
-    kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
-        env MYSQL_PWD="$MYSQL_PASSWORD" mysql --batch --skip-column-names -e "SHOW DATABASES" |
-        awk '$0 !~ /^(information_schema|mysql|performance_schema|sys)$/'
+	kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
+		env MYSQL_PWD="$MYSQL_PASSWORD" mysql --batch --skip-column-names -e "SHOW DATABASES" |
+		awk '$0 !~ /^(information_schema|mysql|performance_schema|sys)$/'
 )"
 if [ -z "$USER_DATABASE_LIST" ]; then
-    echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME." >&2
-    exit "$EXIT_NO_DATABASES"
+	echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME." >&2
+	exit "$EXIT_NO_DATABASES"
 fi
 readarray -t USER_DATABASES <<<"$USER_DATABASE_LIST"
 mkdir -p ./backup
 trap cleanup_backup_files_on_exit EXIT
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
-    env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
+	env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events >./backup/bookstack.sql
 rm -f ./backup/bookstack.tgz
 tar -czf ./backup/bookstack.tgz.tmp -C ./backup bookstack.sql
 mv ./backup/bookstack.tgz.tmp ./backup/bookstack.tgz
@@ -82,11 +82,11 @@ BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying BookStack Uploads from %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/public/uploads && tar -czf - * | cat" > ./backup/uploads.tgz
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/public/uploads && tar -czf - * | cat" >./backup/uploads.tgz
 stop_clock "%s seconds\n"
 echo
 
 printf "Copying BookStack Storage from %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/storage && tar -czf - uploads | cat" > ./backup/storage.tgz
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/storage && tar -czf - uploads | cat" >./backup/storage.tgz
 stop_clock "%s seconds\n"
