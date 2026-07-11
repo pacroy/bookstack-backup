@@ -2,6 +2,8 @@
 set -o errexit
 set -o pipefail
 
+EXIT_NO_DATABASES=91
+
 start_clock() {
     START=$(date +%s)
 }
@@ -48,12 +50,18 @@ readarray -t USER_DATABASES < <(
 )
 if [ "${#USER_DATABASES[@]}" -eq 0 ]; then
     echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME." >&2
-    exit 91
+    exit "$EXIT_NO_DATABASES"
 fi
+cleanup_backup_sql() {
+    rm -f ./backup/bookstack.sql
+}
+
+trap cleanup_backup_sql EXIT
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
     env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
 tar -czf ./backup/bookstack.tgz -C ./backup bookstack.sql
-rm -f ./backup/bookstack.sql
+cleanup_backup_sql
+trap - EXIT
 stop_clock "%s seconds\n"
 echo
 
