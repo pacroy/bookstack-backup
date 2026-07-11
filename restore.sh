@@ -96,4 +96,4 @@ printf "Recreating %s pod ...\n" "$BOOKSTACK_APP_LABEL"
 kubectl scale --replicas=0 deploy -l app="$BOOKSTACK_APP_LABEL" --namespace="$WIKI_NAMESPACE"
 kubectl scale --replicas=1 deploy -l app="$BOOKSTACK_APP_LABEL" --namespace="$WIKI_NAMESPACE"
 
-printf "\nNOTE: If Bookstack pod is error. Check logs and if it complains about table 'api_tokens', drop the table.\n"
+printf "\nNOTE: If the BookStack pod is in an error state, check logs; if it complains about table 'api_tokens', drop the table.\n"
