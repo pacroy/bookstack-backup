@@ -46,7 +46,7 @@ start_clock
 readarray -t USER_DATABASES < <(
     kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
         env MYSQL_PWD="$MYSQL_PASSWORD" mysql --batch --skip-column-names -e "SHOW DATABASES" |
-        awk '!/^(information_schema|mysql|performance_schema|sys)$/'
+        awk '$0 !~ /^(information_schema|mysql|performance_schema|sys)$/'
 )
 if [ "${#USER_DATABASES[@]}" -eq 0 ]; then
     echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME." >&2
@@ -60,7 +60,8 @@ trap cleanup_backup_sql EXIT
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
     env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
 rm -f ./backup/bookstack.tgz
-tar -czf ./backup/bookstack.tgz -C ./backup bookstack.sql
+tar -czf ./backup/bookstack.tgz.tmp -C ./backup bookstack.sql
+mv ./backup/bookstack.tgz.tmp ./backup/bookstack.tgz
 trap - EXIT
 cleanup_backup_sql
 stop_clock "%s seconds\n"
