@@ -24,6 +24,8 @@ Execute the script.
 source <(curl -s https://raw.githubusercontent.com/pacroy/bookstack-backup/main/backup.sh)
 ```
 
+The backup script exports non-system MySQL databases only so dumps from MySQL 5.7 can be restored safely into MySQL 8.4.
+
 ### CLI Usage - Restore
 
 If you copyback from one environment to another, you can additionally set the following variables to update all links.
