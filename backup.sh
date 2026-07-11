@@ -15,6 +15,16 @@ stop_clock() {
     printf "$1" "$DIFF"
 }
 
+cleanup_backup_files() {
+    rm -f ./backup/bookstack.sql ./backup/bookstack.tgz.tmp
+}
+
+cleanup_backup_files_on_exit() {
+    local exit_code=$?
+    cleanup_backup_files
+    exit "$exit_code"
+}
+
 # Check Parameters
 [ -z "$KUBE_CONTEXT" ] && echo "ERROR: Environment variable KUBE_CONTEXT is not set" && exit 1
 [ -z "$WIKI_NAMESPACE" ] && echo "ERROR: Environment variable WIKI_NAMESPACE is not set" && exit 1
@@ -43,27 +53,25 @@ MYSQL_POD_NAME="$(echo "${MYSQL_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying BookStack MySQL DB from %s ... " "$MYSQL_POD_NAME"
 start_clock
-readarray -t USER_DATABASES < <(
+USER_DATABASE_LIST="$(
     kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
         env MYSQL_PWD="$MYSQL_PASSWORD" mysql --batch --skip-column-names -e "SHOW DATABASES" |
         awk '$0 !~ /^(information_schema|mysql|performance_schema|sys)$/'
-)
-if [ "${#USER_DATABASES[@]}" -eq 0 ]; then
+)"
+if [ -z "$USER_DATABASE_LIST" ]; then
     echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME." >&2
     exit "$EXIT_NO_DATABASES"
 fi
-cleanup_backup_sql() {
-    rm -f ./backup/bookstack.sql
-}
-
-trap cleanup_backup_sql EXIT
+readarray -t USER_DATABASES <<<"$USER_DATABASE_LIST"
+mkdir -p ./backup
+trap cleanup_backup_files_on_exit EXIT
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
     env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
 rm -f ./backup/bookstack.tgz
 tar -czf ./backup/bookstack.tgz.tmp -C ./backup bookstack.sql
 mv ./backup/bookstack.tgz.tmp ./backup/bookstack.tgz
 trap - EXIT
-cleanup_backup_sql
+cleanup_backup_files
 stop_clock "%s seconds\n"
 echo
 
