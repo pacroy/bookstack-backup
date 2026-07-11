@@ -46,7 +46,7 @@ readarray -t USER_DATABASES < <(
         awk '!/^(information_schema|mysql|performance_schema|sys)$/'
 )
 if [ "${#USER_DATABASES[@]}" -eq 0 ]; then
-    echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME. Verify the MySQL connection and that the instance contains application databases." >&2
+    echo "ERROR: No non-system databases found to backup on $MYSQL_POD_NAME. Verify MySQL connection and application databases exist." >&2
     exit 91
 fi
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
