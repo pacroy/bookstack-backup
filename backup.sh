@@ -59,9 +59,10 @@ cleanup_backup_sql() {
 trap cleanup_backup_sql EXIT
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
     env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events > ./backup/bookstack.sql
+rm -f ./backup/bookstack.tgz
 tar -czf ./backup/bookstack.tgz -C ./backup bookstack.sql
-cleanup_backup_sql
 trap - EXIT
+cleanup_backup_sql
 stop_clock "%s seconds\n"
 echo
 
