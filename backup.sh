@@ -66,7 +66,11 @@ readarray -t USER_DATABASES <<<"$USER_DATABASE_LIST"
 mkdir -p ./backup
 trap cleanup_backup_files_on_exit EXIT
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
-	env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events >./backup/bookstack.sql
+	env MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --databases "${USER_DATABASES[@]}" --routines --triggers --events --result-file=/root/bookstack.sql
+kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$MYSQL_CONTAINER" \
+	"$MYSQL_POD_NAME:/root/bookstack.sql" ./backup/bookstack.sql
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
+	rm /root/bookstack.sql
 tar -czf ./backup/bookstack.tgz.tmp -C ./backup bookstack.sql
 mv ./backup/bookstack.tgz.tmp ./backup/bookstack.tgz
 trap - EXIT
@@ -81,11 +85,21 @@ BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 
 printf "Copying BookStack Uploads from %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/public/uploads && tar -czf - * | cat" >./backup/uploads.tgz
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
+	tar -czf /tmp/uploads.tgz -C /var/www/bookstack/public/uploads .
+kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$BOOKSTACK_CONTAINER" \
+	"$BOOKSTACK_POD_NAME:/tmp/uploads.tgz" ./backup/uploads.tgz
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
+	rm /tmp/uploads.tgz
 stop_clock "%s seconds\n"
 echo
 
 printf "Copying BookStack Storage from %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
-kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- bash -c "cd /var/www/bookstack/storage && tar -czf - uploads | cat" >./backup/storage.tgz
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
+	tar -czf /tmp/storage.tgz -C /var/www/bookstack/storage uploads
+kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$BOOKSTACK_CONTAINER" \
+	"$BOOKSTACK_POD_NAME:/tmp/storage.tgz" ./backup/storage.tgz
+kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
+	rm /tmp/storage.tgz
 stop_clock "%s seconds\n"
