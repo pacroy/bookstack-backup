@@ -86,7 +86,7 @@ BOOKSTACK_POD_NAME="$(echo "${BOOKSTACK_PODS}" | head -1 | grep -o '[^/]*$')"
 printf "Copying BookStack Uploads from %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
-	tar -czf /tmp/uploads.tgz --warning=no-leading-slash -C /var/www/bookstack/public/uploads .
+	tar -czf /tmp/uploads.tgz -C /var/www/bookstack/public/uploads .
 kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$BOOKSTACK_CONTAINER" \
 	"$BOOKSTACK_POD_NAME:/tmp/uploads.tgz" ./backup/uploads.tgz
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
@@ -97,7 +97,7 @@ echo
 printf "Copying BookStack Storage from %s ... " "$BOOKSTACK_POD_NAME"
 start_clock
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
-	tar -czf /tmp/storage.tgz --warning=no-leading-slash -C /var/www/bookstack/storage uploads
+	tar -czf /tmp/storage.tgz -C /var/www/bookstack/storage uploads
 kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$BOOKSTACK_CONTAINER" \
 	"$BOOKSTACK_POD_NAME:/tmp/storage.tgz" ./backup/storage.tgz
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \

@@ -44,7 +44,7 @@ start_clock
 kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$MYSQL_CONTAINER" \
 	./backup/bookstack.tgz "$MYSQL_POD_NAME:/tmp/bookstack.tgz"
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
-	tar -xzf /tmp/bookstack.tgz --warning=no-leading-slash -C /root
+	tar -xzf /tmp/bookstack.tgz -C /root
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$MYSQL_CONTAINER" "$MYSQL_POD_NAME" -- \
 	rm /tmp/bookstack.tgz
 stop_clock "%s seconds\n"
@@ -73,7 +73,7 @@ start_clock
 kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$BOOKSTACK_CONTAINER" \
 	./backup/uploads.tgz "$BOOKSTACK_POD_NAME:/tmp/uploads.tgz"
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
-	tar -xzf /tmp/uploads.tgz --warning=no-leading-slash -C /var/www/bookstack/public/uploads
+	tar -xzf /tmp/uploads.tgz -C /var/www/bookstack/public/uploads
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
 	rm /tmp/uploads.tgz
 stop_clock "%s seconds\n"
@@ -84,7 +84,7 @@ start_clock
 kubectl cp --context "$KUBE_CONTEXT" --namespace "$WIKI_NAMESPACE" -c "$BOOKSTACK_CONTAINER" \
 	./backup/storage.tgz "$BOOKSTACK_POD_NAME:/tmp/storage.tgz"
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
-	tar -xzf /tmp/storage.tgz --warning=no-leading-slash -C /var/www/bookstack/storage
+	tar -xzf /tmp/storage.tgz -C /var/www/bookstack/storage
 kubectl exec --quiet --context "$KUBE_CONTEXT" --namespace="$WIKI_NAMESPACE" --container="$BOOKSTACK_CONTAINER" "$BOOKSTACK_POD_NAME" -- \
 	rm /tmp/storage.tgz
 stop_clock "%s seconds\n"
