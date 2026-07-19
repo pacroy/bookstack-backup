@@ -32,7 +32,7 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - name: 'Checkout self'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: 'Check variables'
         shell: bash
         run: |
