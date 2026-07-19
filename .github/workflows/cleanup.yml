@@ -1,15 +1,11 @@
-name: Restore
-concurrency: restore
+name: Cleanup Images
+concurrency: cleanup
 
 on:
   workflow_dispatch:
     inputs:
-      backup_date:
-        description: 'Backup date (YYYYMMDD)'
-        required: true
-        type: string
       environment:
-        description: 'Environment name to restore'
+        description: 'Environment name to cleanup'
         required: true
         type: choice
         options:
@@ -18,13 +14,8 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
-  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  BACKUP_DATE: ${{ inputs.backup_date }}
   KUBE_CA_BASE64: ${{ secrets.KUBE_CA_BASE64 }}
   KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
   KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
@@ -32,16 +23,11 @@ env:
   KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
   KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
   WIKI_NAMESPACE: ${{ secrets.WIKI_NAMESPACE }}
-  MYSQL_APP_LABEL: ${{ secrets.MYSQL_APP_LABEL }}
   BOOKSTACK_APP_LABEL: ${{ secrets.BOOKSTACK_APP_LABEL }}
-  BLOB_CONTAINER_NAME: ${{ secrets.BLOB_CONTAINER_NAME }}
-  STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
-  UPDATE_HOST_FROM: ${{ secrets.UPDATE_HOST_FROM }}
-  UPDATE_HOST_TO: ${{ secrets.UPDATE_HOST_TO }}
 
 jobs:
-  restore:
-    name: Restore
+  cleanup:
+    name: Cleanup
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
@@ -55,12 +41,8 @@ jobs:
             value="$(printf '%s' "${!name}")"
             if [ -z "${value}" ]; then missing_vars+="${name}"$'\n' && passed="false"; fi
           }
-
-          check_variable "AZURE_TENANT_ID"
-          check_variable "AZURE_CLIENT_ID"
-          check_variable "AZURE_SUBSCRIPTION_ID"
-
-          check_variable "BACKUP_DATE"
+          passed="true"
+          missing_vars=""
 
           check_variable "KUBE_CA_BASE64"
           check_variable "KUBE_API_SERVER"
@@ -74,11 +56,7 @@ jobs:
           fi
 
           check_variable "WIKI_NAMESPACE"
-          check_variable "MYSQL_APP_LABEL"
           check_variable "BOOKSTACK_APP_LABEL"
-
-          check_variable "BLOB_CONTAINER_NAME"
-          check_variable "STORAGE_ACCOUNT_NAME"
 
           if [ "$passed" = "false" ]; then
             printf '::error::One or more mandatory secret(s) are not configured.\n%s' "$missing_vars"
@@ -94,61 +72,6 @@ jobs:
           echo
           echo "[$(command -v kubectl)]"
           kubectl version --client=true
-      - name: Az CLI login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ env.AZURE_CLIENT_ID }}
-          tenant-id: ${{ env.AZURE_TENANT_ID }}
-          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
-      - name: Download from blob storage
-        shell: bash
-        run: |
-          mkdir backup
-
-          start_clock() {
-            START=$(date +%s.%N)
-          }
-
-          stop_clock() {
-            END=$(date +%s.%N)
-            DIFF=$(echo "$END - $START" | bc)
-            # shellcheck disable=SC2059
-            printf "$1" "$DIFF"
-          }
-
-          BLOB_PREFIX=${BACKUP_DATE}
-          echo "Downloading Bookstack database backup file ..."
-          start_clock
-          az storage blob download \
-            --container-name "$BLOB_CONTAINER_NAME" \
-            --file 'backup/bookstack.tgz' \
-            --name "$BLOB_PREFIX/bookstack.tgz" \
-            --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors --output none
-          stop_clock "Download completed in %s seconds\n"
-          echo
-          echo "Downloading Bookstack upload backup file ..."
-          start_clock
-          az storage blob download \
-            --container-name "$BLOB_CONTAINER_NAME" \
-            --file 'backup/uploads.tgz' \
-            --name "$BLOB_PREFIX/uploads.tgz" \
-            --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors --output none
-          stop_clock "Download completed in %s seconds\n"
-          echo
-          echo "Downloading Bookstack storage backup file ..."
-          start_clock
-          az storage blob download \
-            --container-name "$BLOB_CONTAINER_NAME" \
-            --file 'backup/storage.tgz' \
-            --name "$BLOB_PREFIX/storage.tgz" \
-            --account-name "$STORAGE_ACCOUNT_NAME" \
-            --auth-mode key --only-show-errors --output none
-          stop_clock "Download completed in %s seconds\n"
-          echo
-          echo "[Backup Files]"
-          ls -Al backup/
       - name: Login Kubernetes
         shell: bash
         run: |
@@ -164,13 +87,13 @@ jobs:
           kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
           kubectl config use-context "${KUBE_CONTEXT}"
           kubectl version
-      - name: Execute restore script
+      - name: Execute cleanup script
         shell: bash
         env:
           HOST_FROM: ${{ env.UPDATE_HOST_FROM }}
           HOST_TO: ${{ env.UPDATE_HOST_TO }}
         run: |
-          ./restore.sh -y
+          ./cleanup.sh
       - name: Cleanup
         if: always()
         shell: bash
@@ -181,5 +104,3 @@ jobs:
           kubectl config delete-cluster "${KUBE_CONTEXT}" || true
           rm -f cert.pem || true
           rm -rf backup || true
-          az logout || true
-          az account clear || true
