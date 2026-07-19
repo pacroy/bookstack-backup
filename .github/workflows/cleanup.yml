@@ -89,9 +89,6 @@ jobs:
           kubectl version
       - name: Execute cleanup script
         shell: bash
-        env:
-          HOST_FROM: ${{ env.UPDATE_HOST_FROM }}
-          HOST_TO: ${{ env.UPDATE_HOST_TO }}
         run: |
           ./cleanup.sh
       - name: Cleanup
