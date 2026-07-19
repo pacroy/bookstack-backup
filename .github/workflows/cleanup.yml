@@ -1,0 +1,112 @@
+name: Cleanup Images
+concurrency: cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment name to cleanup'
+        required: true
+        type: choice
+        options:
+        - production
+        - acceptance
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  KUBE_CA_BASE64: ${{ secrets.KUBE_CA_BASE64 }}
+  KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
+  KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
+  KUBE_CLIENT_KEY: ${{ secrets.KUBE_CLIENT_KEY }}
+  KUBE_CLIENT_CERT: ${{ secrets.KUBE_CLIENT_CERT }}
+  KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
+  WIKI_NAMESPACE: ${{ secrets.WIKI_NAMESPACE }}
+  BOOKSTACK_APP_LABEL: ${{ secrets.BOOKSTACK_APP_LABEL }}
+
+jobs:
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: 'Checkout self'
+        uses: actions/checkout@v4
+      - name: 'Check variables'
+        shell: bash
+        run: |
+          check_variable() {
+            name="${1}"
+            value="$(printf '%s' "${!name}")"
+            if [ -z "${value}" ]; then missing_vars+="${name}"$'\n' && passed="false"; fi
+          }
+
+          check_variable "AZURE_TENANT_ID"
+          check_variable "AZURE_CLIENT_ID"
+          check_variable "AZURE_SUBSCRIPTION_ID"
+
+          check_variable "KUBE_CA_BASE64"
+          check_variable "KUBE_API_SERVER"
+          check_variable "KUBE_CONTEXT"
+
+          if [ -n "${KUBE_USER_TOKEN}" ]; then
+            check_variable "KUBE_USER_TOKEN"
+          else
+            check_variable "KUBE_CLIENT_KEY"
+            check_variable "KUBE_CLIENT_CERT"
+          fi
+
+          check_variable "WIKI_NAMESPACE"
+          check_variable "BOOKSTACK_APP_LABEL"
+
+          if [ "$passed" = "false" ]; then
+            printf '::error::One or more mandatory secret(s) are not configured.\n%s' "$missing_vars"
+            exit 90
+          else
+            echo 'All mandatory secrets are configured.'
+          fi
+      - name: Print tool version
+        shell: bash
+        run: |
+          echo "[$(command -v az)]"
+          az version
+          echo
+          echo "[$(command -v kubectl)]"
+          kubectl version --client=true
+      - name: Login Kubernetes
+        shell: bash
+        run: |
+          echo "${KUBE_CA_BASE64}" | base64 -d > cert.pem
+          kubectl config set-cluster "${KUBE_CONTEXT}" --server "${KUBE_API_SERVER}" --embed-certs --certificate-authority=cert.pem
+          if [ -n "${KUBE_USER_TOKEN}" ]; then
+            kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --token="${KUBE_USER_TOKEN}"
+          else
+            echo "${KUBE_CLIENT_CERT}" | base64 -d > client.crt
+            echo "${KUBE_CLIENT_KEY}" | base64 -d > client.key
+            kubectl config set-credentials "clusterUser_${KUBE_CONTEXT}" --client-certificate=client.crt --client-key=client.key --embed-certs=true
+          fi
+          kubectl config set-context "${KUBE_CONTEXT}" --user=cluster-admin --cluster="${KUBE_CONTEXT}" --user="clusterUser_${KUBE_CONTEXT}"
+          kubectl config use-context "${KUBE_CONTEXT}"
+          kubectl version
+      - name: Execute cleanup script
+        shell: bash
+        env:
+          HOST_FROM: ${{ env.UPDATE_HOST_FROM }}
+          HOST_TO: ${{ env.UPDATE_HOST_TO }}
+        run: |
+          ./cleanup.sh
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          echo "Cleaning up ..."
+          kubectl config delete-context "${KUBE_CONTEXT}" || true
+          kubectl config delete-user "clusterUser_${KUBE_CONTEXT}" || true
+          kubectl config delete-cluster "${KUBE_CONTEXT}" || true
+          rm -f cert.pem || true
+          rm -rf backup || true
