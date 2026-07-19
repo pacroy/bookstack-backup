@@ -14,12 +14,8 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
-  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   KUBE_CA_BASE64: ${{ secrets.KUBE_CA_BASE64 }}
   KUBE_API_SERVER: ${{ secrets.KUBE_API_SERVER }}
   KUBE_USER_TOKEN: ${{ secrets.KUBE_USER_TOKEN }}
@@ -45,10 +41,8 @@ jobs:
             value="$(printf '%s' "${!name}")"
             if [ -z "${value}" ]; then missing_vars+="${name}"$'\n' && passed="false"; fi
           }
-
-          check_variable "AZURE_TENANT_ID"
-          check_variable "AZURE_CLIENT_ID"
-          check_variable "AZURE_SUBSCRIPTION_ID"
+          passed="true"
+          missing_vars=""
 
           check_variable "KUBE_CA_BASE64"
           check_variable "KUBE_API_SERVER"
