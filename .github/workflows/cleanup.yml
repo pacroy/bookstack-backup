@@ -90,7 +90,7 @@ jobs:
       - name: Execute cleanup script
         shell: bash
         run: |
-          ./cleanup.sh
+          ./cleanup.sh -y
       - name: Cleanup
         if: always()
         shell: bash
